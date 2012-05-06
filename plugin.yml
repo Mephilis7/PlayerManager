@@ -1,0 +1,8 @@
+name: PlayerManager
+main: com.github.Mephilis7.PlayerManager.PMan_main
+version: 1.3_Beta1
+author: Mephilis7
+commands:
+  pman:
+    description: Helps you managing your players.
+    usage: 'Type /pman for help.'

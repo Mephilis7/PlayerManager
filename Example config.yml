@@ -1,0 +1,48 @@
+# Here are all variables you may need for the messages:
+# &0 - Black          &6 - Gold          &b - Aqua
+# &1 - Dark Blue      &7 - Gray          &c - Red
+# &2 - Dark Green     &8 - Dark Gray     &d - Light Purple
+# &3 - Dark Aqua      &9 - Blue          &e - Yellow
+# &4 - Dark Red       &a - Green         &f - White
+# &5 - Dark Purple
+# %NAME  - %IP  - %WORLD  - %GAMEMODE
+
+
+# Enable the plugin?
+enable: true
+
+# Do you want custom join/quit messages?
+customJQ: true
+# Set your join message here.
+joinMsg: '&aHello %NAME!'
+# This is the message other players will see.
+joinMsgOther: '&bPlayer &e%NAME &b(&c%IP&b) has connected.'
+# The quit message when somebody leaves your server.
+quitMsg: '&e%NAME has left the game.'
+
+# Define the order of the information shown on /pinfo here. Separate the words with ;
+# Name: The player's name
+# IP: The player's IP address
+# World: The world the player is in
+# Health: The player's health
+# Food: The player's food level
+# Xp: The player's Xp level
+# GameMode: The player's gamemode
+# Position: The player's position
+# Distance: The distance from the command executor to the player
+# Example: Name;IP;World;Xp
+order: Name;IP;World;GameMode;Position;Distance
+
+# Should every player's IP address be logged?
+LogIP: true
+# Should BotBlocking be enabled?
+enableBotBlock: true
+# Should two players with the same IP be logged separately?
+logDuplicatedIps: true
+# What should I do if I find two players with
+# the same IP? (Normally one of them is a bot then)
+# Accepted are kick/ban/none.
+punishment: kick
+
+# Should Rei's Minimap be supported?
+supportReiMinimap: true
