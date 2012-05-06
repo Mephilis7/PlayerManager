@@ -148,6 +148,13 @@ public class PMan_IPLogger
 		str = str.replace("%IP", player.getAddress().toString());
 		str = str.replace("%WORLD", player.getWorld().getName());
 		str = str.replace("%GAMEMODE", player.getGameMode().toString());
+		str = str.replace("%ONLINEPLAYERS", Integer.toString(Bukkit.getServer().getOnlinePlayers().length));
+		str = str.replace("%MAXPLAYERS", Integer.toString(Bukkit.getServer().getMaxPlayers()));
+		String s = "";
+		for (Player p: Bukkit.getServer().getOnlinePlayers()){
+			s = s + p.getDisplayName()+ ", ";
+		}
+		str = str.replace("%ONLINELIST", s);
 		String[] Colours = { "&0", "&1", "&2", "&3", "&4", "&5", "&6", "&7", 
 			      "&8", "&9", "&a", "&b", "&c", "&d", "&e", "&f"};
 		ChatColor[] cCode = { ChatColor.BLACK, ChatColor.DARK_BLUE, ChatColor.DARK_GREEN, ChatColor.DARK_AQUA, ChatColor.DARK_RED, ChatColor.DARK_PURPLE, ChatColor.GOLD, ChatColor.GRAY, 

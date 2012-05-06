@@ -20,7 +20,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 /*TODO:
  * - add more information for /pman
  * - add a way to log more information about players
- * - add a /fullban to ban all IP's ever logged by a player
  * - add a hooking into Vault
  */
 public class PMan_main extends JavaPlugin {
@@ -103,14 +102,14 @@ public class PMan_main extends JavaPlugin {
 					//show information about a player; check whether the player is online.
 					if (args[0].equalsIgnoreCase("info")){
 						for (Player infoPlayer: getServer().getOnlinePlayers()){
-							if (infoPlayer.getName().equalsIgnoreCase(args[0])){
+							if (infoPlayer.getName().equalsIgnoreCase(args[1])){
 								playerShowInfo = infoPlayer;
 							}
 						}
 						if (playerShowInfo == null){
 							for (Player infoPlayer: getServer().getOnlinePlayers()){
 								String[] infoIp = infoPlayer.getAddress().toString().split(":");
-								if (infoIp[0].equalsIgnoreCase(args[0]) || infoIp[0].equalsIgnoreCase("/" + args[0])){
+								if (infoIp[0].equalsIgnoreCase(args[1]) || infoIp[0].equalsIgnoreCase("/" + args[1])){
 									playerShowInfo = infoPlayer;
 								}
 							}
@@ -228,7 +227,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# &3 - Dark Aqua      &9 - Blue          &e - Yellow\n");
 			out.write("# &4 - Dark Red       &a - Green         &f - White\n");
 			out.write("# &5 - Dark Purple\n");
-			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE\n\n\n");
+			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS\n");
+			out.write("# %ONLINELIST\n\n\n");
 			
 			
 			out.write("# Enable the plugin?\n");
