@@ -18,7 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /*TODO:
- * - add more information for /pinfo
+ * - add more information for /pman
  * - add a way to log more information about players
  * - add a /fullban to ban all IP's ever logged by a player
  * - add a hooking into Vault
@@ -33,7 +33,7 @@ public class PMan_main extends JavaPlugin {
 	ChatColor white = ChatColor.WHITE;
 	
 	public void onDisable() {
-		VAR.log.info(VAR.logHeader + "Plugin disabled.");
+		VAR.log.info(VAR.logHeader + "Shutdown.");
 	}
 	public void onEnable() {
 		checkConfig();
@@ -55,7 +55,7 @@ public class PMan_main extends JavaPlugin {
 			newConfig();
 		}
 		getServer().getPluginManager().registerEvents(this.ip, this);
-		VAR.log.info(VAR.logHeader + "Ready to show some information!");
+		VAR.log.info(VAR.logHeader + "Ready to manage your players!");
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
