@@ -98,6 +98,8 @@ public class PMan_main extends JavaPlugin {
 						}
 						return true;
 					}
+				}
+				if (args.length == 2){
 					//show information about a player; check whether the player is online.
 					if (args[0].equalsIgnoreCase("info")){
 						for (Player infoPlayer: getServer().getOnlinePlayers()){
@@ -161,7 +163,8 @@ public class PMan_main extends JavaPlugin {
 							return true;
 						}
 					}
-				}else{sender.sendMessage(VAR.Header + ChatColor.RED +"Too many arguments! Type /pman for help.");}
+				}
+				sender.sendMessage(VAR.Header + ChatColor.RED +"False amount of arguments! Type /pman for help.");
 			} else {
 				denied(sender);
 				return true;
