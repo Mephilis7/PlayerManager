@@ -31,16 +31,26 @@ Features:
 Commands:
 ---------
 /pman - Shows help
-/pman <player> - Shows information about the specified player
-/pman <ip> - Shows information about the specified IP address
+/pman info <player|ip> - Shows information about the specified player
 /pman list - Shows all connected players with their gamemode.
 /pman reload - Reloads the config.yml
 
 
 Permissions:
 ------------
-Currently there's only one permission:
-pman.manage - Permission to use /pman
+pman.help - Permission to use /pman
+pman.info - Permission to use /pman info
+pman.info.name - Permission to be shown the name on /pman info
+pman.info.ip - Permission to be shown the IP address on /pman info
+pman.info.world - Permission to be shown the world on /pman info
+pman.info.health - Permission to be shown health on /pman info
+pman.info.food - Permission to be shown food level on /pman info
+pman.info.xp - Permission to be shown Exp Level on /pman info
+pman.info.gamemode - Permission to be shown gamemode on /pman info
+pman.info.position - Permission to be shown position on /pman info
+pman.info.distance - Permission to be shown distance between target and command executor on /pman info
+pman.list - Permission to use /pman list
+pman.reload - Permission to use /pman reload
 
 
 Planned Features:

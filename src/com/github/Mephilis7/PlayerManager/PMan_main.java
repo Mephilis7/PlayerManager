@@ -61,113 +61,132 @@ public class PMan_main extends JavaPlugin {
 		Player playerShowInfo = null;
 		
 		if ((cmd.getName().equalsIgnoreCase("pman"))){
-			if (sender.hasPermission("pman.manage") || (sender.isOp())){
-			
 				if (args.length == 0){
-					sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
-					sender.sendMessage(gold + "/pman"+white+" - "+darkgreen+"Shows this message.");
-					sender.sendMessage(gold + "/pman info <player|ip>"+white+" - "+darkgreen+"Show information about a player.");
-					sender.sendMessage(gold + "/pman list"+white+" - "+darkgreen+"Show all players and their gamemode.");
-					sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reload the config.yml");
+					if (sender.hasPermission("pman.help") || sender.isOp()){
+						sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
+						sender.sendMessage(gold + "/pman"+white+" - "+darkgreen+"Shows this message.");
+						sender.sendMessage(gold + "/pman info <player|ip>"+white+" - "+darkgreen+"Show information about a player.");
+						sender.sendMessage(gold + "/pman list"+white+" - "+darkgreen+"Show all players and their gamemode.");
+						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reload the config.yml");
+					} else { denied(sender);}
 					return true;
 					
 				}
 				if (args.length == 1){
 					//reloading the config.yml
 					if (args[0].equalsIgnoreCase("reload")){
-						checkConfig();
-						try {
-							VAR.config.load(VAR.f_config);
-						} catch (FileNotFoundException e1) {
-							e1.printStackTrace();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						} catch (InvalidConfigurationException e1) {
-							e1.printStackTrace();
-						}
+						if (sender.hasPermission("pman.reload") || sender.isOp()){
+							checkConfig();
+							try {
+								VAR.config.load(VAR.f_config);
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							} catch (InvalidConfigurationException e1) {
+								e1.printStackTrace();
+							}
 					
-						sender.sendMessage(VAR.Header +ChatColor.GREEN+ "config.yml reloaded!");
+							sender.sendMessage(VAR.Header +ChatColor.GREEN+ "config.yml reloaded!");
+						} else { denied(sender);}
 						return true;
 					}
 					//listing all online players with their gamemode
 					if (args[0].equalsIgnoreCase("list")){
-						sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
-						for (Player on: getServer().getOnlinePlayers()){
-							sender.sendMessage(ChatColor.GRAY+on.getName()+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
-						}
+						if (sender.hasPermission("pman.list") || sender.isOp()){
+							sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
+							for (Player on: getServer().getOnlinePlayers()){
+								sender.sendMessage(ChatColor.GRAY+on.getName()+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
+							}
+						} else { denied(sender);}
 						return true;
 					}
 				}
 				if (args.length == 2){
 					//show information about a player; check whether the player is online.
 					if (args[0].equalsIgnoreCase("info")){
-						for (Player infoPlayer: getServer().getOnlinePlayers()){
-							if (infoPlayer.getName().equalsIgnoreCase(args[1])){
-								playerShowInfo = infoPlayer;
-							}
-						}
-						if (playerShowInfo == null){
+						if (sender.hasPermission("pman.info") || sender.isOp()){
 							for (Player infoPlayer: getServer().getOnlinePlayers()){
-								String[] infoIp = infoPlayer.getAddress().toString().split(":");
-								if (infoIp[0].equalsIgnoreCase(args[1]) || infoIp[0].equalsIgnoreCase("/" + args[1])){
+								if (infoPlayer.getName().equalsIgnoreCase(args[1])){
 									playerShowInfo = infoPlayer;
 								}
 							}
 							if (playerShowInfo == null){
-								sender.sendMessage(VAR.Header + "Could not find specified player, is he offline?");
-								return true;
-							}
-						}
-						if (playerShowInfo != null){
-							sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
-							String[] Order = VAR.config.getString("order").split(";");
-							int i=0;
-						
-							//showing information about the specified player as specified in the config.yml
-							while (i < Order.length){
-								if (Order[i].equalsIgnoreCase("Name"))
-									sender.sendMessage(darkgreen + "Name: " + aqua + playerShowInfo.getName());
-								if (Order[i].equalsIgnoreCase("IP"))
-									sender.sendMessage(darkgreen + "IP Address: " + aqua + playerShowInfo.getAddress());
-								if (Order[i].equalsIgnoreCase("World"))
-									sender.sendMessage(darkgreen + "World: " + aqua + playerShowInfo.getWorld().getName());
-								if (Order[i].equalsIgnoreCase("Health"))
-									sender.sendMessage(darkgreen + "Health: " + aqua + playerShowInfo.getHealth());
-								if (Order[i].equalsIgnoreCase("Food"))
-									sender.sendMessage(darkgreen + "Food: " + aqua + playerShowInfo.getFoodLevel());
-								if (Order[i].equalsIgnoreCase("Xp"))
-									sender.sendMessage(darkgreen + "Exp level: " + aqua + playerShowInfo.getLevel());
-								if (Order[i].equalsIgnoreCase("GameMode"))
-									sender.sendMessage(darkgreen + "GameMode: " + aqua + playerShowInfo.getGameMode());
-								if (Order[i].equalsIgnoreCase("Position"))
-									sender.sendMessage(darkgreen + "Position:  " + aqua +"X: "+playerShowInfo.getLocation().getBlockX() + "  Z: " +playerShowInfo.getLocation().getBlockZ()+ "  Y: " +playerShowInfo.getLocation().getBlockY());
-								if (Order[i].equalsIgnoreCase("Distance")){
-									if (sender instanceof Player){
-										int x = abs(playerShowInfo.getLocation().getBlockX());
-										int loc = abs(((Player) sender).getPlayer().getLocation().getBlockX());
-										x = abs(x-loc);
-										int y = abs(playerShowInfo.getLocation().getBlockY());
-										loc = abs(((Player) sender).getPlayer().getLocation().getBlockY());
-										y = abs(y-loc);
-										int z = abs(playerShowInfo.getLocation().getBlockZ());
-										loc = abs(((Player) sender).getPlayer().getLocation().getBlockZ());
-										z = abs(z-loc);
-										x = x+y+z;
-										sender.sendMessage(darkgreen + "Distance: " + aqua + x);
+								for (Player infoPlayer: getServer().getOnlinePlayers()){
+									String[] infoIp = infoPlayer.getAddress().toString().split(":");
+									if (infoIp[0].equalsIgnoreCase(args[1]) || infoIp[0].equalsIgnoreCase("/" + args[1])){
+										playerShowInfo = infoPlayer;
 									}
 								}
-								i++;
+								if (playerShowInfo == null){
+									sender.sendMessage(VAR.Header + "Could not find specified player, is he offline?");
+									return true;
+								}
 							}
-							sender.sendMessage(gold + "--------------------------------------------------");
-							return true;
-						}
+							if (playerShowInfo != null){
+								sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
+								String[] Order = VAR.config.getString("order").split(";");
+								int i=0;
+						
+								//showing information about the specified player as specified in the config.yml
+								while (i < Order.length){
+									if (sender.hasPermission("pman.info.name") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Name"))
+											sender.sendMessage(darkgreen + "Name: " + aqua + playerShowInfo.getName());
+									}
+									if (sender.hasPermission("pman.info.ip") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("IP"))
+											sender.sendMessage(darkgreen + "IP Address: " + aqua + playerShowInfo.getAddress());
+									}
+									if (sender.hasPermission("pman.info.world") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("World"))
+											sender.sendMessage(darkgreen + "World: " + aqua + playerShowInfo.getWorld().getName());
+									}
+									if (sender.hasPermission("pman.info.health") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Health"))
+											sender.sendMessage(darkgreen + "Health: " + aqua + playerShowInfo.getHealth());
+									}
+									if (sender.hasPermission("pman.info.food") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Food"))
+											sender.sendMessage(darkgreen + "Food: " + aqua + playerShowInfo.getFoodLevel());
+									}
+									if (sender.hasPermission("pman.info.xp") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Xp"))
+											sender.sendMessage(darkgreen + "Exp level: " + aqua + playerShowInfo.getLevel());
+									}
+									if (sender.hasPermission("pman.info.gamemode") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("GameMode"))
+											sender.sendMessage(darkgreen + "GameMode: " + aqua + playerShowInfo.getGameMode());
+									}
+									if (sender.hasPermission("pman.info.position") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Position"))
+											sender.sendMessage(darkgreen + "Position:  " + aqua +"X: "+playerShowInfo.getLocation().getBlockX() + "  Z: " +playerShowInfo.getLocation().getBlockZ()+ "  Y: " +playerShowInfo.getLocation().getBlockY());
+									}
+									if (sender.hasPermission("pman.info.distance") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Distance")){
+											if (sender instanceof Player){
+												int x = abs(playerShowInfo.getLocation().getBlockX());
+												int loc = abs(((Player) sender).getPlayer().getLocation().getBlockX());
+												x = abs(x-loc);
+												int y = abs(playerShowInfo.getLocation().getBlockY());
+												loc = abs(((Player) sender).getPlayer().getLocation().getBlockY());
+												y = abs(y-loc);
+												int z = abs(playerShowInfo.getLocation().getBlockZ());
+												loc = abs(((Player) sender).getPlayer().getLocation().getBlockZ());
+												z = abs(z-loc);
+												x = x+y+z;
+												sender.sendMessage(darkgreen + "Distance: " + aqua + x);
+											}
+										} 
+									} i++;
+								}
+								sender.sendMessage(gold + "--------------------------------------------------");
+								return true;
+							}
+						} else { denied(sender);}
 					}
 				}
 				sender.sendMessage(VAR.Header + ChatColor.RED +"False amount of arguments! Type /pman for help.");
-			} else {
-				denied(sender);
-				return true;
-			}
 		}return true;
 		
 	}
