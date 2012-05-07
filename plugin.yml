@@ -1,6 +1,6 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.3_Beta2
+version: 1.3_Beta3
 author: Mephilis7
 commands:
   pman:
@@ -12,7 +12,7 @@ permissions:
     default: op
   pman.info:
     description: Grants access to /pman info
-    default:op
+    default: op
   pman.info.name:
     description: Allows showing Name on /pman info
     default: op

@@ -1,14 +1,14 @@
-PlayerManager v1.3_Beta1 by Mephilis7
+PlayerManager v1.3_Beta3 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R1.3
-It lets you manage your players better. At least that's what it will be good for one day.
+It lets you manage your players better. What it's able to do exactly should be read below.
 
 
 Features:
 ---------
 
-- /pinfo shows information about the player:
+- /pman info shows information about the player:
     - Name
     - IP address
     - World
@@ -18,14 +18,16 @@ Features:
     - GameMode
     - Position
     - Distance to the command sender (player only)
+    - Whether flying is allowed or not.
+- Set various properties per player by typing /pman set!
 - Console support
 - Supports Rei's minimap
 - Custom join/quit messages
 - Fully configurable
-- Logs all IPs to plugins/PlayerInfo/IPs.txt
+- Logs all IPs to plugins/PlayerManager/PlayerLog.txt
 - Blocks bots from joining the server
 - SourceCode on GitHub!
-=> https://github.com/Mephilis7/PlayerInfo
+=> https://github.com/Mephilis7/PlayerManager
 
 
 Commands:
@@ -80,6 +82,9 @@ Planned Features:
 
 Changelog:
 ----------
+
+v1.3_Beta3
+- Severe bugs occuring in Beta2 fixed
 
 v1.3_Beta2
 - Added /pman set fly, health, food, xp and name

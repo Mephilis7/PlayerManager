@@ -81,6 +81,7 @@ public class PMan_main extends JavaPlugin {
 					if (sender.hasPermission("pman.help") || sender.isOp()){
 						sender.sendMessage(gold + "---------------" + green + " PlayerManager [2/2]" + gold + "---------------");
 						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reloads the config.yml");
+						return true;
 					}
 				}
 				if (args.length == 1){
@@ -108,18 +109,20 @@ public class PMan_main extends JavaPlugin {
 					//listing all online players with their gamemode
 					if (args[0].equalsIgnoreCase("list")){
 						if (sender.hasPermission("pman.list") || sender.isOp()){
-							sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
-							for (Player on: getServer().getOnlinePlayers()){
-								sender.sendMessage(ChatColor.GRAY+on.getName()+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
-							}
+							if (getServer().getOnlinePlayers().length >= 1){
+								sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
+								for (Player on: getServer().getOnlinePlayers()){
+									sender.sendMessage(ChatColor.GRAY+on.getName()+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
+								}
+							} else {sender.sendMessage(VAR.Header + ChatColor.AQUA + "Nobody's online :,(");}
 						} else { denied(sender);}
 						return true;
 					}
 				}
-				if (args.length == 2){
-					//show information about a player; check whether the player is online.
-					if (args[0].equalsIgnoreCase("info")){
-						if (sender.hasPermission("pman.info") || sender.isOp()){
+				//show information about a player; check whether the player is online.
+				if (args[0].equalsIgnoreCase("info")){
+					if (sender.hasPermission("pman.info") || sender.isOp()){
+						if (args.length == 2){
 							for (Player infoPlayer: getServer().getOnlinePlayers()){
 								if (infoPlayer.getName().equalsIgnoreCase(args[1])){
 									playerShowInfo = infoPlayer;
@@ -197,12 +200,18 @@ public class PMan_main extends JavaPlugin {
 								sender.sendMessage(gold + "--------------------------------------------------");
 								return true;
 							}
-						} else { denied(sender);}
-					}
+						} else {sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+						sender.sendMessage(ChatColor.BLUE+ "/pman info <player|ip>");
+						}
+					} else { denied(sender);}
 				}
 				// Defining /pman set command
 				if (args[0].equalsIgnoreCase("set")){
 					if (sender.hasPermission("pman.set") || sender.isOp()){
+						if (args.length == 1){
+							sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+							sender.sendMessage(ChatColor.BLUE + "Type /pman for help.");
+						}
 						//set AllowFlight
 						if (args[1].equalsIgnoreCase("fly")){
 							if (sender.hasPermission("pman.set.fly") || sender.isOp()){
@@ -320,7 +329,7 @@ public class PMan_main extends JavaPlugin {
 									if (VAR.logit)
 										VAR.log.info(VAR.logHeader + sender.getName() + " has set the in-game name of "+args[2]+" to "+args[3]);
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-								sender.sendMessage("/pman set name <player> <name>");
+								sender.sendMessage(ChatColor.BLUE+"/pman set name <player> <name>");
 								}
 							}
 						}
