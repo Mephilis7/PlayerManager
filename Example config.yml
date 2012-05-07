@@ -5,11 +5,14 @@
 # &3 - Dark Aqua      &9 - Blue          &e - Yellow
 # &4 - Dark Red       &a - Green         &f - White
 # &5 - Dark Purple
-# %NAME  - %IP  - %WORLD  - %GAMEMODE
+# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS
+# %ONLINELIST
 
 
 # Enable the plugin?
 enable: true
+# Log usage of commands to console?
+logToConsole: true
 
 # Do you want custom join/quit messages?
 customJQ: true
@@ -30,8 +33,9 @@ quitMsg: '&e%NAME has left the game.'
 # GameMode: The player's gamemode
 # Position: The player's position
 # Distance: The distance from the command executor to the player
+# AllowFlight: Whether the player is allowed to fly or not.
 # Example: Name;IP;World;Xp
-order: Name;IP;World;GameMode;Position;Distance
+order: Name;IP;World;Xp
 
 # Should every player's IP address be logged?
 LogIP: true
@@ -44,5 +48,14 @@ logDuplicatedIps: true
 # Accepted are kick/ban/none.
 punishment: kick
 
-# Should Rei's Minimap be supported?
-supportReiMinimap: true
+# Should Rei's Minimap be supported? Separate tags with ;
+# false: Disables. If used in combination with other tags, the minimap still won't be supported.
+# Cave: Allows cave mapping.
+# Player: Allows view of position of a player.
+# Animal: Allows view of animals.
+# Mob: Allows view of hostile mobs.
+# Slime: Allows view of slimes.
+# Squid: Allows view of squids.
+# Other: Allows view of other living, i.e. golems.
+# Example: Player;Mob;Other
+supportReiMinimap: false
