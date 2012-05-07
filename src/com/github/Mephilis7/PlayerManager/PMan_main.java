@@ -24,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class PMan_main extends JavaPlugin {
 	
+	private static Boolean online = false;
 	private PMan_IPLogger ip = new PMan_IPLogger();
 	ChatColor green = ChatColor.GREEN;
 	ChatColor darkgreen = ChatColor.DARK_GREEN;
@@ -61,16 +62,25 @@ public class PMan_main extends JavaPlugin {
 		Player playerShowInfo = null;
 		
 		if ((cmd.getName().equalsIgnoreCase("pman"))){
-				if (args.length == 0){
+				if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("help"))){
 					if (sender.hasPermission("pman.help") || sender.isOp()){
-						sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
+						sender.sendMessage(gold + "---------------" + green + " PlayerManager [1/2]" + gold + "---------------");
 						sender.sendMessage(gold + "/pman"+white+" - "+darkgreen+"Shows this message.");
 						sender.sendMessage(gold + "/pman info <player|ip>"+white+" - "+darkgreen+"Show information about a player.");
 						sender.sendMessage(gold + "/pman list"+white+" - "+darkgreen+"Show all players and their gamemode.");
-						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reload the config.yml");
+						sender.sendMessage(gold + "/pman set fly <player> <allow|deny>"+white+" - "+darkgreen+"Sets AllowFlight");
+						sender.sendMessage(gold + "/pman set food <player> <amount|full|empty>"+white+" - "+darkgreen+"Sets food level");
+						sender.sendMessage(gold + "/pman set health <player> <amount|full>"+white+" - "+darkgreen+"Sets Health");
+						sender.sendMessage(gold + "/pman set name <player> <name|reset>"+white+" - "+darkgreen+"Sets Name");
+						sender.sendMessage(gold + "/pman set xp <player> <level>"+white+" - "+darkgreen+"Sets Xp level");
 					} else { denied(sender);}
 					return true;
-					
+				}
+				if ((args.length == 1 && args[0].equalsIgnoreCase("2")) || (args.length == 2 && args[0].equalsIgnoreCase("help") && args[1].equalsIgnoreCase("2"))){
+					if (sender.hasPermission("pman.help") || sender.isOp()){
+						sender.sendMessage(gold + "---------------" + green + " PlayerManager [2/2]" + gold + "---------------");
+						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reloads the config.yml");
+					}
 				}
 				if (args.length == 1){
 					//reloading the config.yml
@@ -186,6 +196,108 @@ public class PMan_main extends JavaPlugin {
 						} else { denied(sender);}
 					}
 				}
+				// Defining /pman set command
+				if (args[0].equalsIgnoreCase("set")){
+					if (sender.hasPermission("pman.set") || sender.isOp()){
+						//set AllowFlight
+						if (args[1].equalsIgnoreCase("fly")){
+							if (sender.hasPermission("pman.set.fly") || sender.isOp()){
+								if (args.length == 4){
+									checkPlayer(sender, args);
+									if (!online){
+										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
+									} else if (args[3].equalsIgnoreCase("true") || args[3].equalsIgnoreCase("allow")){
+											Bukkit.getServer().getPlayer(args[2]).setAllowFlight(true);
+											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now allowed to fly.");
+											}
+										if (args[3].equalsIgnoreCase("false") || args[3].equalsIgnoreCase("deny")){
+											Bukkit.getServer().getPlayer(args[2]).setAllowFlight(false);
+											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now disallowed to fly.");
+										}
+								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+										 sender.sendMessage(ChatColor.BLUE + "/pman set fly <player> <allow|deny>");
+								}
+							} else { denied(sender);}
+						}
+						//Set health
+						if (args[1].equalsIgnoreCase("health")){
+							if (sender.hasPermission("pman.set.health") || sender.isOp()){
+								if (args.length == 4){
+									checkPlayer(sender, args);
+									if (!online){
+										sender.sendMessage(VAR.Header+ChatColor.RED + "Could not find specified player.");
+									} else{
+										if (args[3].equalsIgnoreCase("full")){
+											getServer().getPlayer(args[2]).setHealth(20);
+										} else { getServer().getPlayer(args[2]).setHealth(Integer.valueOf(args[3]));}
+									}
+								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+								 sender.sendMessage(ChatColor.BLUE + "/pman set health <player> <amount>");
+								}
+							} else { denied(sender);}
+						}
+						//Set food level
+						if (args[1].equalsIgnoreCase("food")){
+							if (sender.hasPermission("pman.set.food") || sender.isOp()){
+								if (args.length == 4){
+									checkPlayer(sender, args);
+									if (!online){
+										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
+									} else {
+										if (args[3].equalsIgnoreCase("full")){
+											getServer().getPlayer(args[2]).setFoodLevel(20);
+										} else if (args[3].equalsIgnoreCase("empty")){
+											getServer().getPlayer(args[2]).setFoodLevel(0);
+										} else {
+											getServer().getPlayer(args[2]).setFoodLevel(Integer.valueOf(args[3]));
+										}
+										sender.sendMessage(VAR.Header + darkgreen + "The player's food level has been set.");
+									}
+								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+								 sender.sendMessage(ChatColor.BLUE + "/pman set food <player> <amount|full>");
+								}
+							} else { denied(sender);}
+						}
+						//Set EXP level
+						if (args[1].equalsIgnoreCase("xp")){
+							if (sender.hasPermission("pman.set.xp") || sender.isOp()){
+								if (args.length == 4){
+									checkPlayer(sender, args);
+									if (!online){
+										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
+									} else { getServer().getPlayer(args[2]).setLevel(Integer.valueOf(args[3]));
+									sender.sendMessage(VAR.Header + darkgreen + "The player's EXP level has been set.");
+									}
+								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+								 sender.sendMessage(ChatColor.BLUE + "/pman set xp <player> <level>");
+								}
+							} else { denied(sender);}
+						}
+						//Set Display- and ListName
+						if (args[1].equalsIgnoreCase("name")){
+							if (sender.hasPermission("pman.set.name") || sender.isOp()){
+								if (args.length == 4){
+									if (!getServer().getPlayer(args[2]).hasPlayedBefore()){
+										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
+										return true;
+									}
+									if (args[3].equalsIgnoreCase("reset")){
+										getServer().getPlayer(args[2]).setDisplayName(args[2]);
+										getServer().getPlayer(args[2]).setPlayerListName(args[2]);
+										sender.sendMessage(VAR.Header + darkgreen+ "The player's name has been set to default.");
+										return true;
+									}
+									getServer().getPlayer(args[2]).setDisplayName(args[3]);
+									getServer().getPlayer(args[2]).setPlayerListName(args[3]);
+									sender.sendMessage(VAR.Header + darkgreen + "The player's name has been set.");
+								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+								sender.sendMessage("/pman set name <player> <name>");
+								}
+							}
+						}
+						return true;
+					} else { denied(sender);}
+				}
 				sender.sendMessage(VAR.Header + ChatColor.RED +"False amount of arguments! Type /pman for help.");
 		}return true;
 		
@@ -206,6 +318,8 @@ public class PMan_main extends JavaPlugin {
 				e1.printStackTrace();
 			}
 			if (!VAR.config.isSet("enable")){
+				newConfig();
+			} else if (!VAR.config.isSet("logToConsole")){ 
 				newConfig();
 			} else if (!VAR.config.isSet("customJQ")){
 				newConfig();
@@ -251,7 +365,9 @@ public class PMan_main extends JavaPlugin {
 			
 			
 			out.write("# Enable the plugin?\n");
-			out.write("enable: true\n\n");
+			out.write("enable: true\n");
+			out.write("# Log usage of commands to console?\n");
+			out.write("logToConsole: true\n\n");
 			
 			out.write("# Do you want custom join/quit messages?\n");
 			out.write("customJQ: true\n");
@@ -272,6 +388,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# GameMode: The player's gamemode\n");
 			out.write("# Position: The player's position\n");
 			out.write("# Distance: The distance from the command executor to the player\n");
+			out.write("# AllowFlight: Whether the player is allowed to fly or not.\n");
 			out.write("# Example: Name;IP;World;Xp\n");
 			out.write("order: Name;IP;World;Xp\n\n");
 			
@@ -299,6 +416,13 @@ public class PMan_main extends JavaPlugin {
 		if (a < 0)
 			a = a*(-1);
 		return a;
+	}
+	public boolean checkPlayer(CommandSender sender, String[] args){
+		for (Player on: Bukkit.getServer().getOnlinePlayers()){
+			if (on.getName().equalsIgnoreCase(args[2]))
+				online = true;
+		}
+		return online;
 	}
 }
 
