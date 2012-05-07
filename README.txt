@@ -73,13 +73,19 @@ Planned Features:
 -----------------
 
 - Hooking into Vault to display group and money
-- Add first/last login and last logout to /pman
+- Add first/last login and last logout to /pman info
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
-- Various player managing stuff
+- improve the BotBlocker (one IP bound to one name and vice versa)
 
 
 Changelog:
 ----------
+
+v1.3_Beta2
+- Added /pman set fly, health, food, xp and name
+- Added optional logging of used commands to console
+- Added many permissions
+- Made the support for Rei's Minimap fully configurable
 
 v1.3_Beta1
 - Configurable join/quit messages

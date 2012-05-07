@@ -1,6 +1,6 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.3_Beta1
+version: 1.3_Beta2
 author: Mephilis7
 commands:
   pman:
@@ -49,17 +49,17 @@ permissions:
   pman.set.fly:
     description: Allows setting of AllowFlight
     default: op
-  pman.set.health:
-    description: Allows setting of health
-    default: op
   pman.set.food:
     description: Allows setting of food level
     default: op
-  pman.set.xp:
-    description: Allows setting of xp level
+  pman.set.health:
+    description: Allows setting of health
     default: op
   pman.set.name:
     description: Allows setting of name
+    default: op
+  pman.set.xp:
+    description: Allows setting of xp level
     default: op
   pman.reload:
     description: Allows usage of /pman reload

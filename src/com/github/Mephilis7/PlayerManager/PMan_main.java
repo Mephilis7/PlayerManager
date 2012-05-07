@@ -54,6 +54,7 @@ public class PMan_main extends JavaPlugin {
 		if (!VAR.config.getString("punishment").equalsIgnoreCase("kick") && !VAR.config.getString("punishment").equalsIgnoreCase("ban") && !VAR.config.getString("punishment").equalsIgnoreCase("none")){
 			newConfig();
 		}
+		VAR.logit = VAR.config.getBoolean("logToConsole");
 		getServer().getPluginManager().registerEvents(this.ip, this);
 		VAR.log.info(VAR.logHeader + "Ready to manage your players!");
 	}
@@ -96,8 +97,11 @@ public class PMan_main extends JavaPlugin {
 							} catch (InvalidConfigurationException e1) {
 								e1.printStackTrace();
 							}
-					
+							
+							VAR.logit = VAR.config.getBoolean("logToConsole");
 							sender.sendMessage(VAR.Header +ChatColor.GREEN+ "config.yml reloaded!");
+							if (VAR.logit)
+								VAR.log.info(VAR.logHeader + sender.getName() + " reloaded the config.yml");
 						} else { denied(sender);}
 						return true;
 					}
@@ -209,10 +213,14 @@ public class PMan_main extends JavaPlugin {
 									} else if (args[3].equalsIgnoreCase("true") || args[3].equalsIgnoreCase("allow")){
 											Bukkit.getServer().getPlayer(args[2]).setAllowFlight(true);
 											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now allowed to fly.");
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has allowed " +args[2]+ " to fly!");
 											}
 										if (args[3].equalsIgnoreCase("false") || args[3].equalsIgnoreCase("deny")){
 											Bukkit.getServer().getPlayer(args[2]).setAllowFlight(false);
 											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now disallowed to fly.");
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has disallowed " +args[2]+ " to fly!");
 										}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 										 sender.sendMessage(ChatColor.BLUE + "/pman set fly <player> <allow|deny>");
@@ -229,7 +237,12 @@ public class PMan_main extends JavaPlugin {
 									} else{
 										if (args[3].equalsIgnoreCase("full")){
 											getServer().getPlayer(args[2]).setHealth(20);
-										} else { getServer().getPlayer(args[2]).setHealth(Integer.valueOf(args[3]));}
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has filled up the health of " +args[2]);
+										} else { getServer().getPlayer(args[2]).setHealth(Integer.valueOf(args[3]));
+										if (VAR.logit)
+											VAR.log.info(VAR.logHeader + sender.getName() + " has set the health of " +args[2]+ " to " +args[3]);
+										}
 									}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 								 sender.sendMessage(ChatColor.BLUE + "/pman set health <player> <amount>");
@@ -246,10 +259,20 @@ public class PMan_main extends JavaPlugin {
 									} else {
 										if (args[3].equalsIgnoreCase("full")){
 											getServer().getPlayer(args[2]).setFoodLevel(20);
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has filled up the food bar of "+args[2]);
 										} else if (args[3].equalsIgnoreCase("empty")){
 											getServer().getPlayer(args[2]).setFoodLevel(0);
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has emptied the food bar of "+args[2]);
 										} else {
+											try{
 											getServer().getPlayer(args[2]).setFoodLevel(Integer.valueOf(args[3]));
+											} catch (Exception e){
+												sender.sendMessage(VAR.Header+ChatColor.RED+"The food level has to be a number!");
+											}
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has set the food level of "+args[2]+" to "+args[3]);
 										}
 										sender.sendMessage(VAR.Header + darkgreen + "The player's food level has been set.");
 									}
@@ -267,6 +290,8 @@ public class PMan_main extends JavaPlugin {
 										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
 									} else { getServer().getPlayer(args[2]).setLevel(Integer.valueOf(args[3]));
 									sender.sendMessage(VAR.Header + darkgreen + "The player's EXP level has been set.");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader + sender.getName() + " has set the EXP level of "+args[2]+" to "+args[3]);
 									}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 								 sender.sendMessage(ChatColor.BLUE + "/pman set xp <player> <level>");
@@ -285,11 +310,15 @@ public class PMan_main extends JavaPlugin {
 										getServer().getPlayer(args[2]).setDisplayName(args[2]);
 										getServer().getPlayer(args[2]).setPlayerListName(args[2]);
 										sender.sendMessage(VAR.Header + darkgreen+ "The player's name has been set to default.");
+										if (VAR.logit)
+											VAR.log.info(VAR.logHeader + sender.getName() + " has reset the in-game name of " +args[2]);
 										return true;
 									}
 									getServer().getPlayer(args[2]).setDisplayName(args[3]);
 									getServer().getPlayer(args[2]).setPlayerListName(args[3]);
 									sender.sendMessage(VAR.Header + darkgreen + "The player's name has been set.");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader + sender.getName() + " has set the in-game name of "+args[2]+" to "+args[3]);
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 								sender.sendMessage("/pman set name <player> <name>");
 								}
@@ -403,7 +432,16 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Accepted are kick/ban/none.\n");
 			out.write("punishment: kick\n\n");
 			
-			out.write("# Should Rei's Minimap be supported?\n");
+			out.write("# Should Rei's Minimap be supported? Separate tags with ;\n");
+			out.write("# false: Disables. If used in combination with other tags, the minimap still won't be supported.\n");
+			out.write("# Cave: Allows cave mapping.\n");
+			out.write("# Player: Allows view of position of a player.\n");
+			out.write("# Animal: Allows view of animals.\n");
+			out.write("# Mob: Allows view of hostile mobs.\n");
+			out.write("# Slime: Allows view of slimes.\n");
+			out.write("# Squid: Allows view of squids.\n");
+			out.write("# Other: Allows view of other living, i.e. golems.\n");
+			out.write("# Example: Player;Mob;Other\n");
 			out.write("supportReiMinimap: false\n\n");
 			
 			out.close();

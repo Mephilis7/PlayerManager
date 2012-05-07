@@ -48,7 +48,9 @@ public class PMan_IPLogger
 		VAR.msg = VAR.config.getString("joinMsg");
 		VAR.msg = replace(VAR.msg, event.getPlayer());
 		//support for Rei's Minimap
-		if (VAR.config.getBoolean("supportReiMinimap")){
+		String map = VAR.config.getString("supportReiMinimap");
+		if (!map.toLowerCase().contains("false")){
+			VAR.msg = minimap(map) + VAR.msg;
 			event.getPlayer().sendMessage(""+ChatColor.BLACK+ChatColor.BLACK+ChatColor.DARK_GREEN+ChatColor.DARK_AQUA+ChatColor.DARK_RED+ChatColor.DARK_PURPLE+ChatColor.GOLD+ChatColor.GRAY+ChatColor.YELLOW+ChatColor.WHITE+ VAR.msg);
 		} else {event.getPlayer().sendMessage(VAR.msg);}
 		VAR.msg = VAR.config.getString("joinMsgOther");
@@ -164,6 +166,26 @@ public class PMan_IPLogger
 				str = str.replace(Colours[i], cCode[i].toString());
 		}
 		return str;
+	}
+	public String minimap(String str){
+		str = str.toLowerCase();
+		String result = (ChatColor.BLACK.toString()+ChatColor.BLACK.toString());
+		if (str.contains("cave"))
+			result = result + ChatColor.DARK_BLUE.toString();
+		if (str.contains("player"))
+			result = result + ChatColor.DARK_GREEN.toString();
+		if (str.contains("animal"))
+			result = result + ChatColor.DARK_AQUA.toString();
+		if (str.contains("mob"))
+			result = result + ChatColor.DARK_RED.toString();
+		if (str.contains("slime"))
+			result = result + ChatColor.DARK_PURPLE.toString();
+		if (str.contains("squid"))
+			result = result + ChatColor.GOLD.toString();
+		if (str.contains("other"))
+			result = result + ChatColor.GRAY.toString();
+		result = result + ChatColor.YELLOW.toString() + ChatColor.WHITE.toString();
+		return result;
 	}
 }
 

@@ -18,4 +18,5 @@ public class VAR
 	public static String directory = "plugins" + File.separator + "PlayerManager";
 	static File f_config = new File(directory + File.separator + "config.yml");
 	static YamlConfiguration config;
+	public static boolean logit = false;
 }
