@@ -63,33 +63,37 @@ public class PMan_main extends JavaPlugin {
 		Player playerShowInfo = null;
 		
 		if ((cmd.getName().equalsIgnoreCase("pman"))){
+			//help page
 				if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("help"))){
 					if (sender.hasPermission("pman.help") || sender.isOp()){
 						sender.sendMessage(gold + "---------------" + green + " PlayerManager [1/2]" + gold + "---------------");
 						sender.sendMessage(gold + "/pman"+white+" - "+darkgreen+"Shows this message.");
+						sender.sendMessage(gold + "/pman hide <player>"+white+" - "+darkgreen+"Hides a player. And I mean hide.");
 						sender.sendMessage(gold + "/pman info <player|ip>"+white+" - "+darkgreen+"Show information about a player.");
 						sender.sendMessage(gold + "/pman list"+white+" - "+darkgreen+"Show all players and their gamemode.");
 						sender.sendMessage(gold + "/pman set fly <player> <allow|deny>"+white+" - "+darkgreen+"Sets AllowFlight");
 						sender.sendMessage(gold + "/pman set food <player> <amount|full|empty>"+white+" - "+darkgreen+"Sets food level");
 						sender.sendMessage(gold + "/pman set health <player> <amount|full>"+white+" - "+darkgreen+"Sets Health");
 						sender.sendMessage(gold + "/pman set name <player> <name|reset>"+white+" - "+darkgreen+"Sets Name");
-						sender.sendMessage(gold + "/pman set xp <player> <level>"+white+" - "+darkgreen+"Sets Xp level");
 					} else { denied(sender);}
 					return true;
 				}
 				if ((args.length == 1 && args[0].equalsIgnoreCase("2")) || (args.length == 2 && args[0].equalsIgnoreCase("help") && args[1].equalsIgnoreCase("2"))){
 					if (sender.hasPermission("pman.help") || sender.isOp()){
 						sender.sendMessage(gold + "---------------" + green + " PlayerManager [2/2]" + gold + "---------------");
-						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reloads the config.yml");
+						sender.sendMessage(gold + "/pman set xp <player> <level>"+white+" - "+darkgreen+"Sets Xp level");
+						sender.sendMessage(gold + "/pman show <player>"+white+" - "+darkgreen+"Shows a hidden player again.");
+						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reloads the config.yml and the PlayerLog.yml");
 						return true;
 					}
 				}
 				if (args.length == 1){
-					//reloading the config.yml
+					//reloading the config.yml and the PlayerLog.yml
 					if (args[0].equalsIgnoreCase("reload")){
 						if (sender.hasPermission("pman.reload") || sender.isOp()){
 							checkConfig();
 							try {
+								loadPlayerLog();
 								VAR.config.load(VAR.f_config);
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
@@ -97,6 +101,8 @@ public class PMan_main extends JavaPlugin {
 								e1.printStackTrace();
 							} catch (InvalidConfigurationException e1) {
 								e1.printStackTrace();
+							} catch (Exception ex){
+								ex.printStackTrace();
 							}
 							
 							VAR.logit = VAR.config.getBoolean("logToConsole");
@@ -112,7 +118,7 @@ public class PMan_main extends JavaPlugin {
 							if (getServer().getOnlinePlayers().length >= 1){
 								sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
 								for (Player on: getServer().getOnlinePlayers()){
-									sender.sendMessage(ChatColor.GRAY+on.getName()+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
+									sender.sendMessage(ChatColor.DARK_GRAY+on.getDisplayName()+ " (" +ChatColor.GRAY+on.getName()+ ")"+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
 								}
 							} else {sender.sendMessage(VAR.Header + ChatColor.AQUA + "Nobody's online :,(");}
 						} else { denied(sender);}
@@ -195,6 +201,18 @@ public class PMan_main extends JavaPlugin {
 												sender.sendMessage(darkgreen + "Distance: " + aqua + x);
 											}
 										} 
+									} 
+									if (sender.hasPermission("pman.info.allowFlight") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("AllowFlight")){
+											if (playerShowInfo.getAllowFlight()){
+											sender.sendMessage(darkgreen + "Is allowed to fly around.");
+											} else { sender.sendMessage(darkgreen + "Is not allowed to fly.");}
+										}
+									} 
+									if (sender.hasPermission("pman.info.realName") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("RealName")){
+											sender.sendMessage(darkgreen + "Real Name: "+ playerShowInfo.getName());
+										}
 									} i++;
 								}
 								sender.sendMessage(gold + "--------------------------------------------------");
@@ -204,9 +222,54 @@ public class PMan_main extends JavaPlugin {
 						sender.sendMessage(ChatColor.BLUE+ "/pman info <player|ip>");
 						}
 					} else { denied(sender);}
+					return true;
+				}
+				if (args[0].equalsIgnoreCase("hide")){
+					if (sender.hasPermission("pman.hide") || sender.isOp()){
+						if (args.length == 2){
+							checkPlayer(sender, args);
+							if (!online){
+								sender.sendMessage(VAR.Header + ChatColor.RED + "Could not find specified player.");
+							} else {
+								Player p = getServer().getPlayer(args[2]).getPlayer();
+								getServer().getPlayer(args[2]).hidePlayer(p);
+								try {
+									loadPlayerLog();
+									VAR.pLog.set("players."+args[2]+".Hidden", true);
+									VAR.pLog.save(VAR.f_player);
+								} catch (Exception ex){
+									ex.printStackTrace();
+								}
+							}
+						} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+						sender.sendMessage(ChatColor.RED + "/pman hide <player>");
+						}
+					} else { denied(sender);}
+				}
+				if (args[0].equalsIgnoreCase("show")){
+					if (sender.hasPermission("pman.hide") || sender.isOp()){
+						if (args.length == 2){
+							checkPlayer(sender, args);
+							if (!online){
+								sender.sendMessage(VAR.Header + ChatColor.RED + "Could not find specified player.");
+							} else {
+								Player p = getServer().getPlayer(args[2]).getPlayer();
+								getServer().getPlayer(args[2]).showPlayer(p);
+								try {
+									loadPlayerLog();
+									VAR.pLog.set("players."+args[2]+".Hidden", false);
+								} catch (Exception ex){
+									ex.printStackTrace();
+								}
+							}
+						} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
+						sender.sendMessage(ChatColor.RED + "/pman hide <player>");
+						}
+					} else { denied(sender);}
 				}
 				// Defining /pman set command
 				if (args[0].equalsIgnoreCase("set")){
+					boolean found = false;
 					if (sender.hasPermission("pman.set") || sender.isOp()){
 						if (args.length == 1){
 							sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
@@ -214,23 +277,37 @@ public class PMan_main extends JavaPlugin {
 						}
 						//set AllowFlight
 						if (args[1].equalsIgnoreCase("fly")){
+							found = true;
 							if (sender.hasPermission("pman.set.fly") || sender.isOp()){
 								if (args.length == 4){
 									checkPlayer(sender, args);
 									if (!online){
 										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
 									} else if (args[3].equalsIgnoreCase("true") || args[3].equalsIgnoreCase("allow")){
-											Bukkit.getServer().getPlayer(args[2]).setAllowFlight(true);
+											getServer().getPlayer(args[2]).setAllowFlight(true);
 											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now allowed to fly.");
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has allowed " +args[2]+ " to fly!");
+											try {
+												loadPlayerLog();
+												VAR.pLog.set("players."+args[2]+".Allowed to fly", true);
+												VAR.pLog.save(VAR.f_player);
+											} catch (Exception ex){
+												ex.printStackTrace();
 											}
-										if (args[3].equalsIgnoreCase("false") || args[3].equalsIgnoreCase("deny")){
-											Bukkit.getServer().getPlayer(args[2]).setAllowFlight(false);
-											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now disallowed to fly.");
-											if (VAR.logit)
-												VAR.log.info(VAR.logHeader + sender.getName() + " has disallowed " +args[2]+ " to fly!");
-										}
+											} else if (args[3].equalsIgnoreCase("false") || args[3].equalsIgnoreCase("deny")){
+												getServer().getPlayer(args[2]).setAllowFlight(false);
+												sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now disallowed to fly.");
+												if (VAR.logit)
+													VAR.log.info(VAR.logHeader + sender.getName() + " has disallowed " +args[2]+ " to fly!");
+												try{
+													loadPlayerLog();
+													VAR.pLog.set("players."+args[2]+".Allowed to fly", false);
+													VAR.pLog.save(VAR.f_player);
+												} catch (Exception ex){
+													ex.printStackTrace();
+												}
+											} else { sender.sendMessage(VAR.Header + ChatColor.RED + "Usage: /pman set fly <player> allow|deny");}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 										 sender.sendMessage(ChatColor.BLUE + "/pman set fly <player> <allow|deny>");
 								}
@@ -238,6 +315,7 @@ public class PMan_main extends JavaPlugin {
 						}
 						//Set health
 						if (args[1].equalsIgnoreCase("health")){
+							found = true;
 							if (sender.hasPermission("pman.set.health") || sender.isOp()){
 								if (args.length == 4){
 									checkPlayer(sender, args);
@@ -260,6 +338,7 @@ public class PMan_main extends JavaPlugin {
 						}
 						//Set food level
 						if (args[1].equalsIgnoreCase("food")){
+							found = true;
 							if (sender.hasPermission("pman.set.food") || sender.isOp()){
 								if (args.length == 4){
 									checkPlayer(sender, args);
@@ -292,6 +371,7 @@ public class PMan_main extends JavaPlugin {
 						}
 						//Set EXP level
 						if (args[1].equalsIgnoreCase("xp")){
+							found = true;
 							if (sender.hasPermission("pman.set.xp") || sender.isOp()){
 								if (args.length == 4){
 									checkPlayer(sender, args);
@@ -309,6 +389,7 @@ public class PMan_main extends JavaPlugin {
 						}
 						//Set Display- and ListName
 						if (args[1].equalsIgnoreCase("name")){
+							found = true;
 							if (sender.hasPermission("pman.set.name") || sender.isOp()){
 								if (args.length == 4){
 									if (!getServer().getPlayer(args[2]).hasPlayedBefore()){
@@ -321,6 +402,13 @@ public class PMan_main extends JavaPlugin {
 										sender.sendMessage(VAR.Header + darkgreen+ "The player's name has been set to default.");
 										if (VAR.logit)
 											VAR.log.info(VAR.logHeader + sender.getName() + " has reset the in-game name of " +args[2]);
+										try {
+											loadPlayerLog();
+											VAR.pLog.set("players."+args[2]+".Displayed Name", args[2]);
+											VAR.pLog.save(VAR.f_player);
+										} catch (Exception ex){
+											ex.printStackTrace();
+										}
 										return true;
 									}
 									getServer().getPlayer(args[2]).setDisplayName(args[3]);
@@ -328,12 +416,22 @@ public class PMan_main extends JavaPlugin {
 									sender.sendMessage(VAR.Header + darkgreen + "The player's name has been set.");
 									if (VAR.logit)
 										VAR.log.info(VAR.logHeader + sender.getName() + " has set the in-game name of "+args[2]+" to "+args[3]);
+									try {
+										loadPlayerLog();
+										VAR.pLog.set("players."+args[2]+".Displayed Name", args[3]);
+										VAR.pLog.save(VAR.f_player);
+									} catch (Exception ex){
+										ex.printStackTrace();
+									}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 								sender.sendMessage(ChatColor.BLUE+"/pman set name <player> <name>");
 								}
 							}
 						}
-						return true;
+						if (found)
+							return true;
+						sender.sendMessage(VAR.Header + ChatColor.RED + "Your arguments have not been recognized.");
+						sender.sendMessage(VAR.Header + ChatColor.RED + "Type /pman for more information.");
 					} else { denied(sender);}
 				}
 				sender.sendMessage(VAR.Header + ChatColor.RED +"False amount of arguments! Type /pman for help.");
@@ -358,6 +456,8 @@ public class PMan_main extends JavaPlugin {
 			if (!VAR.config.isSet("enable")){
 				newConfig();
 			} else if (!VAR.config.isSet("logToConsole")){ 
+				newConfig();
+			} else if (!VAR.config.isSet("restore")){
 				newConfig();
 			} else if (!VAR.config.isSet("customJQ")){
 				newConfig();
@@ -406,6 +506,14 @@ public class PMan_main extends JavaPlugin {
 			out.write("enable: true\n");
 			out.write("# Log usage of commands to console?\n");
 			out.write("logToConsole: true\n\n");
+			out.write("# Do you want player modifications (name,allowFly,...) to be reset\n");
+			out.write("# when the player logs out and back in? Separate with ';'/n");
+			out.write("# All modifications not specified here will be re-enabled.\n");
+			out.write("# Fly: Reset allowing/denying to fly.");
+			out.write("# Name: Reset the player's name.");
+			out.write("# Hidden: Show the player again.");
+			out.write("# Example: Fly;Hidden");
+			out.write("restore: Fly;Hidden");
 			
 			out.write("# Do you want custom join/quit messages?\n");
 			out.write("customJQ: true\n");
@@ -416,7 +524,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# The quit message when somebody leaves your server.\n");
 			out.write("quitMsg: '&e%NAME has left the game.'\n\n");
 			
-			out.write("# Define the order of the information shown on /pinfo here. Separate the words with ;\n");
+			out.write("# Define the order of the information shown on /pinfo here. Separate the words with ';'\n");
 			out.write("# Name: The player's name\n");
 			out.write("# IP: The player's IP address\n");
 			out.write("# World: The world the player is in\n");
@@ -441,7 +549,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Accepted are kick/ban/none.\n");
 			out.write("punishment: kick\n\n");
 			
-			out.write("# Should Rei's Minimap be supported? Separate tags with ;\n");
+			out.write("# Should Rei's Minimap be supported? Separate tags with ';'\n");
 			out.write("# false: Disables. If used in combination with other tags, the minimap still won't be supported.\n");
 			out.write("# Cave: Allows cave mapping.\n");
 			out.write("# Player: Allows view of position of a player.\n");
@@ -466,10 +574,20 @@ public class PMan_main extends JavaPlugin {
 	}
 	public boolean checkPlayer(CommandSender sender, String[] args){
 		for (Player on: Bukkit.getServer().getOnlinePlayers()){
-			if (on.getName().equalsIgnoreCase(args[2]))
+			if (on.getName().equals(args[2]))
 				online = true;
 		}
 		return online;
+	}
+	private void loadPlayerLog() throws Exception{
+		if (!VAR.f_player.exists()){
+			VAR.f_player.createNewFile();
+			VAR.log.info(VAR.logHeader + "Creating PlayerLog file.");
+		}
+		VAR.pLog = YamlConfiguration.loadConfiguration(VAR.f_player);
+		VAR.pLog.options().header("PlayerLogs");
+		VAR.pLog.addDefault("players", null);
+		VAR.pLog.save(VAR.f_player);
 	}
 }
 

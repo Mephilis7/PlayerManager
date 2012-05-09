@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Iterator;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,28 +18,17 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.github.Mephilis7.PlayerManager.VAR;
 
-/*TODO
- * - Make the IPLog a nice file where the data only gets updatet, not newly written... 
- * Example:
- * 
- * Mephilis7:
- *     lastLogin: [18/4/2012 14:12:47]
- *     lastLogout: [26/4/2012 23:56:29]
- *     IPs: 
- *         - /127.0.0.1
- *         - /123.12.3.123
- */
-
 public class PMan_IPLogger
   implements Listener
 {
-	private FileConfiguration log = null;
-	private File logFile = new File(VAR.directory + File.separator + "PlayerLog.txt");
 	
+	@SuppressWarnings("null")
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event){
 		//whenever a player joins the server, do this...
-		String playerip = event.getPlayer().getAddress().toString();
+		String[] playerip = event.getPlayer().getAddress().toString().split(":");
+		if (playerip[0].startsWith("/"))
+			playerip[0] = playerip[0].replaceFirst("/", "");
 		String player = event.getPlayer().getName();
 		
 		File botLog = new File(VAR.directory + File.separator + "Duplicated IP's.txt");
@@ -57,27 +46,72 @@ public class PMan_IPLogger
 		VAR.msg = replace(VAR.msg, event.getPlayer());
 		event.setJoinMessage(VAR.msg);
 		
-		//IP Logger
-		if (VAR.config.getBoolean("LogIP")){
-			try {
-				//log the player's IP address to plugins/PlayerManager/PlayerLogs.txt
-				BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true));
-				writer.write("["+getDate()+"] "+player+" - '"+playerip+"'");
-				writer.newLine();
-				writer.flush();
-				writer.close();
-				} catch (IOException e){
-					e.printStackTrace();
-				} catch (Exception e){
-					e.printStackTrace();
+		//PlayerLog file
+		try
+		{
+			loadPlayerLog();
+			String path = "players."+player;
+			VAR.pLog.addDefault(path+".lastLogin", null);
+			VAR.pLog.addDefault(path+".lastLogout", null);
+			VAR.pLog.addDefault(path+".Allowed to fly", Bukkit.getServer().getAllowFlight());
+			VAR.pLog.addDefault(path+".Displayed Name", Bukkit.getServer().getPlayer(player).getDisplayName());
+			VAR.pLog.addDefault(path+".Hidden", false);
+				
+			VAR.pLog.set(path+".lastLogin", "["+getDate()+"]");
+			
+			if (VAR.config.getBoolean("LogIP")){	
+				VAR.pLog.addDefault(path+".IP Address", null);
+				int i = 0;
+				String[] str = null;
+				boolean there = false;
+				for (Iterator it = VAR.pLog.getList(path+".IP Address").iterator(); it.hasNext();){
+					if (str[i].equals(null)){
+						str[i] = it.next().toString();
+					} else {str[i+1] = it.next().toString();}
+					if (str[i].equalsIgnoreCase(playerip[0]))
+						there = true;
+					i++;
 				}
+				if (!there)
+					if (str[i].equals(null)){
+						str[i] = playerip[0];
+					} else { str[i+1] = playerip[0]; }
+				VAR.pLog.set(path+".IP Address", str);
+			}
+			
+			if (VAR.config.getString("restore").toLowerCase().contains("fly")){
+				Bukkit.getServer().getPlayer(player).setAllowFlight(Bukkit.getServer().getAllowFlight());
+				VAR.pLog.set(path+".Allowed to fly", Bukkit.getServer().getAllowFlight());
+			} else {
+				Bukkit.getServer().getPlayer(player).setAllowFlight(VAR.pLog.getBoolean(path+".Allowed to fly"));
+			}
+			if (VAR.config.getString("restore").toLowerCase().contains("name")){
+				Bukkit.getServer().getPlayer(player).setDisplayName(player);
+				Bukkit.getServer().getPlayer(player).setPlayerListName(player);
+				VAR.pLog.set(path+".Displayed Name", player);
+			} else { 
+				Bukkit.getServer().getPlayer(player).setDisplayName(VAR.pLog.getString(path+".Displayed Name"));
+				Bukkit.getServer().getPlayer(player).setPlayerListName(VAR.pLog.getString(path+".Displayed Name"));
+			}
+			if (VAR.config.getString("restore").toLowerCase().contains("hidden")){
+				Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer());
+				VAR.pLog.set(path+".Hidden", false);
+			} else if (VAR.pLog.getBoolean(path+".Hidden")){
+				Bukkit.getServer().getPlayer(player).hidePlayer(event.getPlayer());
+			} else { Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer()); }
+				
+				
+			VAR.pLog.save(VAR.f_player);
+		} catch (IOException ex){
+			ex.printStackTrace();
+		} catch (Exception ex){
+			ex.printStackTrace();
 		}
 		//BotBlocker
-		String playerIp[] = playerip.split(":");
 		if (VAR.config.getBoolean("enableBotBlock")){
 				for(Player online: Bukkit.getServer().getOnlinePlayers()){
 				String[] onlineip = online.getAddress().toString().split(":");
-				if ((onlineip[0].equalsIgnoreCase(playerIp[0])) && (!onlineip[1].equalsIgnoreCase(playerIp[1]))){
+				if ((onlineip[0].equalsIgnoreCase(playerip[0])) && (!onlineip[1].equalsIgnoreCase(playerip[1]))){
 					VAR.log.info(VAR.logHeader +"Found duplicated ip: "+player+" and "+online.getName());
 					VAR.doubleIP = true;
 				}
@@ -91,7 +125,7 @@ public class PMan_IPLogger
 				}
 				if (VAR.config.getString("punishment").equalsIgnoreCase("ban")){
 					event.getPlayer().kickPlayer("You have been banned for using a bot. Or being one.");
-					Bukkit.banIP(playerIp[0]);
+					Bukkit.banIP(playerip[0]);
 					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED +player+" has been BANNED for logging in");
 					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED+"with a duplicated IP address! (Bot?)");
 					VAR.log.info(VAR.logHeader +player+" has been banned (duplicated ip)");
@@ -103,7 +137,7 @@ public class PMan_IPLogger
 							VAR.log.info(VAR.logHeader + "Creating IPLog file.");
 						}
 						BufferedWriter writer = new BufferedWriter(new FileWriter(botLog, true));
-						writer.write("["+getDate()+"] "+player+" - '"+playerIp[0]+"'");
+						writer.write("["+getDate()+"] "+player+" - '"+playerip[0]+"'");
 						writer.newLine();
 						writer.flush();
 						writer.close();
@@ -116,22 +150,32 @@ public class PMan_IPLogger
 	}
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event){
+		Player player = event.getPlayer();
 		if (VAR.config.getBoolean("customJQ")){
 			VAR.msg = VAR.config.getString("quitMsg");
 			VAR.msg = replace(VAR.msg, event.getPlayer());
 			event.setQuitMessage(VAR.msg);
 		}
+		try
+		{
+			loadPlayerLog();
+			VAR.pLog.set("players."+player.getName()+".lastLogout", "["+getDate()+"]");
+			VAR.pLog.save(VAR.f_player);
+		} catch (Exception ex){
+			VAR.log.severe(VAR.logHeader+ "Could not write playerQuitTime to PlayerLog.yml!");
+			ex.printStackTrace();
+		}
 		return;
 	}
-	public void loadPlayerLog() throws Exception{
-		if (!logFile.exists()){
-			logFile.createNewFile();
+	private void loadPlayerLog() throws Exception{
+		if (!VAR.f_player.exists()){
+			VAR.f_player.createNewFile();
 			VAR.log.info(VAR.logHeader + "Creating PlayerLog file.");
 		}
-		this.log = YamlConfiguration.loadConfiguration(this.logFile);
-		this.log.options().header("PlayerLogs");
-		this.log.addDefault("players", null);
-		this.log.save(this.logFile);
+		VAR.pLog = YamlConfiguration.loadConfiguration(VAR.f_player);
+		VAR.pLog.options().header("PlayerLogs");
+		VAR.pLog.addDefault("players", null);
+		VAR.pLog.save(VAR.f_player);
 	}
 	public static String getDate(){
 	    Calendar c = Calendar.getInstance();

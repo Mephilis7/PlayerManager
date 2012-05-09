@@ -14,9 +14,12 @@ public class VAR
 	public static String Header = ChatColor.GOLD + "[PlayerManager] ";
 	public static boolean doubleIP;
 	public static String msg = "";
+	public static boolean logit = false;
 	//config file:
 	public static String directory = "plugins" + File.separator + "PlayerManager";
 	static File f_config = new File(directory + File.separator + "config.yml");
 	static YamlConfiguration config;
-	public static boolean logit = false;
+	//player file:
+	static File f_player = new File(directory + File.separator + "PlayerLog.yml");
+	static YamlConfiguration pLog;
 }

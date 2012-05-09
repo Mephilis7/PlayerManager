@@ -20,11 +20,12 @@ Features:
     - Distance to the command sender (player only)
     - Whether flying is allowed or not.
 - Set various properties per player by typing /pman set!
+- Show/Hide your players!
 - Console support
 - Supports Rei's minimap
 - Custom join/quit messages
 - Fully configurable
-- Logs all IPs to plugins/PlayerManager/PlayerLog.txt
+- Logs all IPs to plugins/PlayerManager/PlayerLog.yml
 - Blocks bots from joining the server
 - SourceCode on GitHub!
 => https://github.com/Mephilis7/PlayerManager
@@ -33,9 +34,11 @@ Features:
 Commands:
 ---------
 /pman - Shows help
+/pman hide <player> - Hides a player. Not able to be seen anywhere.
 /pman info <player|ip> - Shows information about the specified player.
 /pman list - Shows all connected players with their gamemode.
 /pman set <property> <player> <value> - Setting of various properties per player.
+/pman show <player> - Shows a hidden player again.
 /pman reload - Reloads the config.yml
 
 
@@ -51,6 +54,7 @@ xp - Set player's xp level
 Permissions:
 ------------
 pman.help - Permission to use /pman
+pman.hide - Permission to use /pman hide and /pman show
 pman.info - Permission to use /pman info
 pman.info.name - Permission to be shown the name on /pman info
 pman.info.ip - Permission to be shown the IP address on /pman info
@@ -61,6 +65,7 @@ pman.info.xp - Permission to be shown Exp Level on /pman info
 pman.info.gamemode - Permission to be shown gamemode on /pman info
 pman.info.position - Permission to be shown position on /pman info
 pman.info.distance - Permission to be shown distance between target and command executor on /pman info
+pman.info.allowFlight - Permission to be shown whether the target is allowed to fly or not.
 pman.list - Permission to use /pman list
 pman.set - Permission to use /pman set
 pman.set.fly - Permission to set AllowFlight per player
@@ -82,6 +87,13 @@ Planned Features:
 
 Changelog:
 ----------
+
+v1.3_Beta4
+- "/pman set" now tells you when your arguments where wrong
+- Other minor Bugs from Beta3 fixed
+- Added real name to /pman list
+- Added /pman hide and /pman show to hide/show your players
+- Made the PlayerLog.yml waaay better
 
 v1.3_Beta3
 - Severe bugs occuring in Beta2 fixed

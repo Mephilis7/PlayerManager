@@ -10,6 +10,9 @@ permissions:
   pman.help:
     description: Allows usage of /pman
     default: op
+  pman.hide:
+    description: Allows usage of /pman hide and /pman show
+    default: op
   pman.info:
     description: Grants access to /pman info
     default: op
@@ -39,6 +42,9 @@ permissions:
     default: op
   pman.info.distance:
     description: Allows showing distance from target to command executor on /pman info
+    default: op
+  pman.info.allowFlight:
+    description: Allows showing whether the target is allowed to fly or not.
     default: op
   pman.list:
     description: Allows usage of /pman list
