@@ -1,6 +1,6 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.3_Beta3
+version: 1.3_Beta4
 author: Mephilis7
 commands:
   pman:
@@ -21,6 +21,12 @@ permissions:
     default: op
   pman.info.ip:
     description: Allows showing IP address on /pman info
+    default: op
+  pman.info.lastLogin:
+    description: Allows showing the last login on /pman info
+    default: op
+  pman.info.lastLogout:
+    description: Allows showing the last logout on /pman info
     default: op
   pman.info.world:
     description: Allows showing World on /pman info
@@ -45,6 +51,12 @@ permissions:
     default: op
   pman.info.allowFlight:
     description: Allows showing whether the target is allowed to fly or not.
+    default: op
+  pman.info.hidden:
+    description: Allows showing whether the target is hidden
+    default: op
+  pman.info.mute:
+    description: Allows showing whether the target is muted
     default: op
   pman.list:
     description: Allows usage of /pman list

@@ -13,6 +13,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -34,17 +35,19 @@ public class PMan_IPLogger
 		File botLog = new File(VAR.directory + File.separator + "Duplicated IP's.txt");
 		
 		//join messages
-		VAR.msg = VAR.config.getString("joinMsg");
-		VAR.msg = replace(VAR.msg, event.getPlayer());
-		//support for Rei's Minimap
-		String map = VAR.config.getString("supportReiMinimap");
-		if (!map.toLowerCase().contains("false")){
-			VAR.msg = minimap(map) + VAR.msg;
-			event.getPlayer().sendMessage(""+ChatColor.BLACK+ChatColor.BLACK+ChatColor.DARK_GREEN+ChatColor.DARK_AQUA+ChatColor.DARK_RED+ChatColor.DARK_PURPLE+ChatColor.GOLD+ChatColor.GRAY+ChatColor.YELLOW+ChatColor.WHITE+ VAR.msg);
-		} else {event.getPlayer().sendMessage(VAR.msg);}
-		VAR.msg = VAR.config.getString("joinMsgOther");
-		VAR.msg = replace(VAR.msg, event.getPlayer());
-		event.setJoinMessage(VAR.msg);
+		if (VAR.config.getBoolean("customJQ")){
+			VAR.msg = VAR.config.getString("joinMsg");
+			VAR.msg = replace(VAR.msg, event.getPlayer());
+			//support for Rei's Minimap
+			String map = VAR.config.getString("supportReiMinimap");
+			if (!map.toLowerCase().contains("false")){
+				VAR.msg = minimap(map) + VAR.msg;
+				event.getPlayer().sendMessage(""+ChatColor.BLACK+ChatColor.BLACK+ChatColor.DARK_GREEN+ChatColor.DARK_AQUA+ChatColor.DARK_RED+ChatColor.DARK_PURPLE+ChatColor.GOLD+ChatColor.GRAY+ChatColor.YELLOW+ChatColor.WHITE+ VAR.msg);
+			} else {event.getPlayer().sendMessage(VAR.msg);}
+			VAR.msg = VAR.config.getString("joinMsgOther");
+			VAR.msg = replace(VAR.msg, event.getPlayer());
+			event.setJoinMessage(VAR.msg);
+		}
 		
 		//PlayerLog file
 		try
@@ -56,6 +59,7 @@ public class PMan_IPLogger
 			VAR.pLog.addDefault(path+".Allowed to fly", Bukkit.getServer().getAllowFlight());
 			VAR.pLog.addDefault(path+".Displayed Name", Bukkit.getServer().getPlayer(player).getDisplayName());
 			VAR.pLog.addDefault(path+".Hidden", false);
+			VAR.pLog.addDefault(path+".Muted", false);
 				
 			VAR.pLog.set(path+".lastLogin", "["+getDate()+"]");
 			
@@ -79,13 +83,13 @@ public class PMan_IPLogger
 				VAR.pLog.set(path+".IP Address", str);
 			}
 			
-			if (VAR.config.getString("restore").toLowerCase().contains("fly")){
+			if (VAR.config.getString("reset").toLowerCase().contains("fly")){
 				Bukkit.getServer().getPlayer(player).setAllowFlight(Bukkit.getServer().getAllowFlight());
 				VAR.pLog.set(path+".Allowed to fly", Bukkit.getServer().getAllowFlight());
 			} else {
 				Bukkit.getServer().getPlayer(player).setAllowFlight(VAR.pLog.getBoolean(path+".Allowed to fly"));
 			}
-			if (VAR.config.getString("restore").toLowerCase().contains("name")){
+			if (VAR.config.getString("reset").toLowerCase().contains("name")){
 				Bukkit.getServer().getPlayer(player).setDisplayName(player);
 				Bukkit.getServer().getPlayer(player).setPlayerListName(player);
 				VAR.pLog.set(path+".Displayed Name", player);
@@ -93,12 +97,14 @@ public class PMan_IPLogger
 				Bukkit.getServer().getPlayer(player).setDisplayName(VAR.pLog.getString(path+".Displayed Name"));
 				Bukkit.getServer().getPlayer(player).setPlayerListName(VAR.pLog.getString(path+".Displayed Name"));
 			}
-			if (VAR.config.getString("restore").toLowerCase().contains("hidden")){
+			if (VAR.config.getString("reset").toLowerCase().contains("hidden")){
 				Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer());
 				VAR.pLog.set(path+".Hidden", false);
 			} else if (VAR.pLog.getBoolean(path+".Hidden")){
 				Bukkit.getServer().getPlayer(player).hidePlayer(event.getPlayer());
 			} else { Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer()); }
+			if (VAR.config.getString("reset").toLowerCase().contains("muted"))
+				VAR.pLog.set(path+".Muted", false);
 				
 				
 			VAR.pLog.save(VAR.f_player);
@@ -112,7 +118,7 @@ public class PMan_IPLogger
 				for(Player online: Bukkit.getServer().getOnlinePlayers()){
 				String[] onlineip = online.getAddress().toString().split(":");
 				if ((onlineip[0].equalsIgnoreCase(playerip[0])) && (!onlineip[1].equalsIgnoreCase(playerip[1]))){
-					VAR.log.info(VAR.logHeader +"Found duplicated ip: "+player+" and "+online.getName());
+					VAR.log.info(VAR.logHeader +ChatColor.RED+"Found duplicated ip: "+player+" and "+online.getName());
 					VAR.doubleIP = true;
 				}
 			}
@@ -162,10 +168,24 @@ public class PMan_IPLogger
 			VAR.pLog.set("players."+player.getName()+".lastLogout", "["+getDate()+"]");
 			VAR.pLog.save(VAR.f_player);
 		} catch (Exception ex){
-			VAR.log.severe(VAR.logHeader+ "Could not write playerQuitTime to PlayerLog.yml!");
 			ex.printStackTrace();
 		}
 		return;
+	}
+	@EventHandler
+	public void onPlayerChat(PlayerChatEvent event){
+		Boolean muted = null;
+		try {
+			loadPlayerLog();
+			muted = VAR.pLog.getBoolean("players."+event.getPlayer().getName()+".Muted");
+		} catch (Exception ex){
+			ex.printStackTrace();
+			return;
+		}
+		if (muted){
+			event.getPlayer().sendMessage(ChatColor.RED+"You've been muted. Stop trying to chat.");
+			event.setCancelled(true);
+		}
 	}
 	private void loadPlayerLog() throws Exception{
 		if (!VAR.f_player.exists()){

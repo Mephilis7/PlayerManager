@@ -18,9 +18,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /*TODO:
- * - add more information for /pman
- * - add a way to log more information about players
- * - add a hooking into Vault
+ * - add more information for /pman info
+ * - censor defined bad words
+ * - block logger that notifies everybody whith permission that someone has placed a "bad" block
+ * - add a hook into Vault
+ * - teleporting
  */
 public class PMan_main extends JavaPlugin {
 	
@@ -38,12 +40,15 @@ public class PMan_main extends JavaPlugin {
 	public void onEnable() {
 		checkConfig();
 		try {
+			loadPlayerLog();
 			VAR.config.load(VAR.f_config);
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		} catch (InvalidConfigurationException e1) {
+			e1.printStackTrace();
+		} catch (Exception e1){
 			e1.printStackTrace();
 		}
 		
@@ -161,6 +166,14 @@ public class PMan_main extends JavaPlugin {
 										if (Order[i].equalsIgnoreCase("IP"))
 											sender.sendMessage(darkgreen + "IP Address: " + aqua + playerShowInfo.getAddress());
 									}
+									if (sender.hasPermission("pman.info.lastLogin") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("LastLogin"))
+											sender.sendMessage(darkgreen + "Last Login: "+aqua+VAR.pLog.getString("players."+playerShowInfo.getName()+".lastLogin"));
+									}
+									if (sender.hasPermission("pman.info.lastLogout") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("LastLogout"))
+											sender.sendMessage(darkgreen + "Last Logout: "+aqua+VAR.pLog.getString("players."+playerShowInfo.getName()+".lastLogout"));
+									}
 									if (sender.hasPermission("pman.info.world") || sender.isOp()){
 										if (Order[i].equalsIgnoreCase("World"))
 											sender.sendMessage(darkgreen + "World: " + aqua + playerShowInfo.getWorld().getName());
@@ -210,10 +223,18 @@ public class PMan_main extends JavaPlugin {
 										}
 									} 
 									if (sender.hasPermission("pman.info.realName") || sender.isOp()){
-										if (Order[i].equalsIgnoreCase("RealName")){
-											sender.sendMessage(darkgreen + "Real Name: "+ playerShowInfo.getName());
-										}
-									} i++;
+										if (Order[i].equalsIgnoreCase("RealName"))
+											sender.sendMessage(darkgreen + "Real Name: "+ aqua + playerShowInfo.getName());
+									} 
+									if (sender.hasPermission("pman.info.hidden") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Hidden"))
+											sender.sendMessage(darkgreen + "Hidden: "+ aqua + VAR.pLog.getBoolean("players."+playerShowInfo.getName()+".Hidden"));
+									}
+									if (sender.hasPermission("pman.info.mute") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Muted"))
+											sender.sendMessage(darkgreen + "Muted: " + aqua + VAR.pLog.getBoolean("players."+playerShowInfo.getName()+".Muted"));
+									}
+									i++;
 								}
 								sender.sendMessage(gold + "--------------------------------------------------");
 								return true;
@@ -224,6 +245,7 @@ public class PMan_main extends JavaPlugin {
 					} else { denied(sender);}
 					return true;
 				}
+				//hide a player
 				if (args[0].equalsIgnoreCase("hide")){
 					if (sender.hasPermission("pman.hide") || sender.isOp()){
 						if (args.length == 2){
@@ -232,7 +254,11 @@ public class PMan_main extends JavaPlugin {
 								sender.sendMessage(VAR.Header + ChatColor.RED + "Could not find specified player.");
 							} else {
 								Player p = getServer().getPlayer(args[2]).getPlayer();
-								getServer().getPlayer(args[2]).hidePlayer(p);
+								for (Player p2: getServer().getOnlinePlayers()){
+									p2.hidePlayer(p);
+								}
+								if (VAR.logit)
+									VAR.log.info(VAR.logHeader + sender.getName() + " has hidden " + p.getName());
 								try {
 									loadPlayerLog();
 									VAR.pLog.set("players."+args[2]+".Hidden", true);
@@ -246,6 +272,7 @@ public class PMan_main extends JavaPlugin {
 						}
 					} else { denied(sender);}
 				}
+				//show a player
 				if (args[0].equalsIgnoreCase("show")){
 					if (sender.hasPermission("pman.hide") || sender.isOp()){
 						if (args.length == 2){
@@ -254,16 +281,52 @@ public class PMan_main extends JavaPlugin {
 								sender.sendMessage(VAR.Header + ChatColor.RED + "Could not find specified player.");
 							} else {
 								Player p = getServer().getPlayer(args[2]).getPlayer();
-								getServer().getPlayer(args[2]).showPlayer(p);
+								for (Player p2: getServer().getOnlinePlayers()){
+									p2.showPlayer(p);
+								}
+								if (VAR.logit)
+									VAR.log.info(VAR.logHeader + sender.getName() + " has un-hidden " + p.getName());
 								try {
 									loadPlayerLog();
 									VAR.pLog.set("players."+args[2]+".Hidden", false);
+									VAR.pLog.save(VAR.f_player);
 								} catch (Exception ex){
 									ex.printStackTrace();
 								}
 							}
 						} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-						sender.sendMessage(ChatColor.RED + "/pman hide <player>");
+						sender.sendMessage(ChatColor.RED + "/pman show <player>");
+						}
+					} else { denied(sender);}
+				}
+				//mute a player
+				if (args[0].equalsIgnoreCase("mute")){
+					if (sender.hasPermission("pman.mute")){
+						if (args.length == 2){
+							checkPlayer(sender, args);
+							if (!online){
+								sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find the specified player.");
+							} else {
+								try{
+									loadPlayerLog();
+									Boolean muted = VAR.pLog.getBoolean("players."+args[1]+".Muted");
+									
+									if (muted){
+										VAR.pLog.set("players."+args[1]+".Muted", false);
+									} else {
+										VAR.pLog.set("players."+args[1]+".Muted", true);
+									}
+									
+									VAR.pLog.save(VAR.f_player);
+								} catch (Exception ex){
+									ex.printStackTrace();
+								}
+								if (VAR.logit)
+									VAR.log.info(VAR.logHeader + sender.getName() + " has muted " + args[1]);
+							}
+						} else { 
+							sender.sendMessage(VAR.Header+ChatColor.RED+"False amount of arguments!");
+							sender.sendMessage(VAR.Header+ChatColor.RED+"/pman mute <player>");
 						}
 					} else { denied(sender);}
 				}
@@ -457,7 +520,7 @@ public class PMan_main extends JavaPlugin {
 				newConfig();
 			} else if (!VAR.config.isSet("logToConsole")){ 
 				newConfig();
-			} else if (!VAR.config.isSet("restore")){
+			} else if (!VAR.config.isSet("reset")){
 				newConfig();
 			} else if (!VAR.config.isSet("customJQ")){
 				newConfig();
@@ -512,8 +575,9 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Fly: Reset allowing/denying to fly.");
 			out.write("# Name: Reset the player's name.");
 			out.write("# Hidden: Show the player again.");
+			out.write("# Muted: Allow the player to speak if he/she has been muted.");
 			out.write("# Example: Fly;Hidden");
-			out.write("restore: Fly;Hidden");
+			out.write("reset: Fly;Hidden");
 			
 			out.write("# Do you want custom join/quit messages?\n");
 			out.write("customJQ: true\n");
@@ -527,6 +591,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Define the order of the information shown on /pinfo here. Separate the words with ';'\n");
 			out.write("# Name: The player's name\n");
 			out.write("# IP: The player's IP address\n");
+			out.write("# LastLogin: The date and time the player has joined the last time.");
+			out.write("# LastLogout: The date and time the player has left the last time.");
 			out.write("# World: The world the player is in\n");
 			out.write("# Health: The player's health\n");
 			out.write("# Food: The player's food level\n");
@@ -535,14 +601,16 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Position: The player's position\n");
 			out.write("# Distance: The distance from the command executor to the player\n");
 			out.write("# AllowFlight: Whether the player is allowed to fly or not.\n");
-			out.write("# Example: Name;IP;World;Xp\n");
-			out.write("order: Name;IP;World;Xp\n\n");
+			out.write("# Hidden: Whether the player is hidden or not.\n");
+			out.write("# Muted: Whether the player is muted or not.\n");
+			out.write("# Example: Name;IP;World;Xp;Muted\n");
+			out.write("order: Name;IP;World;Xp;Muted\n\n");
 			
 			out.write("# Should every player's IP address be logged?\n");
 			out.write("LogIP: true\n");
 			out.write("# Should BotBlocking be enabled?\n");
 			out.write("enableBotBlock: true\n");
-			out.write("# Should two players with the same IP be logged separately?\n");
+			out.write("# Should two players with the same IP be logged in a separated file?\n");
 			out.write("logDuplicatedIps: true\n");
 			out.write("# What should I do if I find two players with\n");
 			out.write("# the same IP? (Normally one of them is a bot then)\n");

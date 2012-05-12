@@ -1,4 +1,4 @@
-PlayerManager v1.3_Beta3 by Mephilis7
+PlayerManager v1.3_Beta4 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R1.3
@@ -12,6 +12,8 @@ Features:
     - Name
     - IP address
     - World
+    - last Login
+    - last Logout
     - Health
     - Food
     - Exp level
@@ -19,13 +21,16 @@ Features:
     - Position
     - Distance to the command sender (player only)
     - Whether flying is allowed or not.
+    - Whether he is hidden
+    - Whether he is muted
 - Set various properties per player by typing /pman set!
 - Show/Hide your players!
+- Mute spammers!
 - Console support
 - Supports Rei's minimap
 - Custom join/quit messages
 - Fully configurable
-- Logs all IPs to plugins/PlayerManager/PlayerLog.yml
+- Logs all IPs and more info to plugins/PlayerManager/PlayerLog.yml
 - Blocks bots from joining the server
 - SourceCode on GitHub!
 => https://github.com/Mephilis7/PlayerManager
@@ -58,6 +63,8 @@ pman.hide - Permission to use /pman hide and /pman show
 pman.info - Permission to use /pman info
 pman.info.name - Permission to be shown the name on /pman info
 pman.info.ip - Permission to be shown the IP address on /pman info
+pman.info.lastLogin - Permission to be shown the date and time of the last login
+pman.info.lastLogout - Permission to be shown the date and time of the last logout
 pman.info.world - Permission to be shown the world on /pman info
 pman.info.health - Permission to be shown health on /pman info
 pman.info.food - Permission to be shown food level on /pman info
@@ -66,6 +73,8 @@ pman.info.gamemode - Permission to be shown gamemode on /pman info
 pman.info.position - Permission to be shown position on /pman info
 pman.info.distance - Permission to be shown distance between target and command executor on /pman info
 pman.info.allowFlight - Permission to be shown whether the target is allowed to fly or not.
+pman.info.hidden - Permission to be shown whether the target is hidden
+pman.info.mute - Permission to be shown whether the target is muted
 pman.list - Permission to use /pman list
 pman.set - Permission to use /pman set
 pman.set.fly - Permission to set AllowFlight per player
@@ -90,9 +99,10 @@ Changelog:
 
 v1.3_Beta4
 - "/pman set" now tells you when your arguments where wrong
-- Other minor Bugs from Beta3 fixed
+- Minor Bugs from Beta3 fixed
 - Added real name to /pman list
 - Added /pman hide and /pman show to hide/show your players
+- Added /pman mute to mute spammers
 - Made the PlayerLog.yml waaay better
 
 v1.3_Beta3
