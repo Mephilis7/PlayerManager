@@ -1,4 +1,4 @@
-PlayerManager v1.3_Beta4 by Mephilis7
+PlayerManager v1.3_stable by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R1.3
