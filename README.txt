@@ -42,6 +42,7 @@ Commands:
 /pman hide <player> - Hides a player. Not able to be seen anywhere.
 /pman info <player|ip> - Shows information about the specified player.
 /pman list - Shows all connected players with their gamemode.
+/pman mute <player> - Mutes a player.
 /pman set <property> <player> <value> - Setting of various properties per player.
 /pman show <player> - Shows a hidden player again.
 /pman reload - Reloads the config.yml
@@ -97,13 +98,15 @@ Planned Features:
 Changelog:
 ----------
 
-v1.3_Beta4
+v1.3 stable
 - "/pman set" now tells you when your arguments where wrong
-- Minor Bugs from Beta3 fixed
+- Minor Bugs from v1.3_Beta3 fixed
 - Added real name to /pman list
 - Added /pman hide and /pman show to hide/show your players
 - Added /pman mute to mute spammers
 - Made the PlayerLog.yml waaay better
+- Fixed the IP Logger not working as it should
+- Fixed a problem with the config file
 
 v1.3_Beta3
 - Severe bugs occuring in Beta2 fixed

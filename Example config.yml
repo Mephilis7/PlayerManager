@@ -13,6 +13,15 @@
 enable: true
 # Log usage of commands to console?
 logToConsole: true
+# Do you want player modifications (name,allowFly,...) to be reset
+# when the player logs out and back in? Separate with ';'
+# All modifications not specified here will be re-enabled.
+# Fly: Reset allowing/denying to fly.
+# Name: Reset the player's name.
+# Hidden: Show the player again.
+# Muted: Allow the player to speak if he/she has been muted.
+# Example: Fly;Hidden
+reset: Fly;Hidden
 
 # Do you want custom join/quit messages?
 customJQ: true
@@ -21,11 +30,15 @@ joinMsg: '&aHello %NAME!'
 # This is the message other players will see.
 joinMsgOther: '&bPlayer &e%NAME &b(&c%IP&b) has connected.'
 # The quit message when somebody leaves your server.
-quitMsg: '&e%NAME has left the game.'
+quitMsg: '&e%NAME left the game.'
+# The message a muted player is shown when he tries to chat.
+mutedMsg: '&cYou have been muted.'
 
-# Define the order of the information shown on /pinfo here. Separate the words with ;
+# Define the order of the information shown on /pinfo here. Separate the words with ';'
 # Name: The player's name
 # IP: The player's IP address
+# LastLogin: The date and time the player has joined the last time.
+# LastLogout: The date and time the player has left the last time.
 # World: The world the player is in
 # Health: The player's health
 # Food: The player's food level
@@ -34,21 +47,23 @@ quitMsg: '&e%NAME has left the game.'
 # Position: The player's position
 # Distance: The distance from the command executor to the player
 # AllowFlight: Whether the player is allowed to fly or not.
-# Example: Name;IP;World;Xp
-order: Name;IP;World;Xp
+# Hidden: Whether the player is hidden or not.
+# Muted: Whether the player is muted or not.
+# Example: Name;IP;World;Xp;Muted
+order: Name;IP;World;Xp;Muted
 
 # Should every player's IP address be logged?
 LogIP: true
 # Should BotBlocking be enabled?
 enableBotBlock: true
-# Should two players with the same IP be logged separately?
+# Should two players with the same IP be logged in a separated file?
 logDuplicatedIps: true
 # What should I do if I find two players with
 # the same IP? (Normally one of them is a bot then)
 # Accepted are kick/ban/none.
 punishment: kick
 
-# Should Rei's Minimap be supported? Separate tags with ;
+# Should Rei's Minimap be supported? Separate tags with ';'
 # false: Disables. If used in combination with other tags, the minimap still won't be supported.
 # Cave: Allows cave mapping.
 # Player: Allows view of position of a player.
@@ -59,3 +74,7 @@ punishment: kick
 # Other: Allows view of other living, i.e. golems.
 # Example: Player;Mob;Other
 supportReiMinimap: false
+
+
+# DO NOT CHANGE THIS!
+version: 1

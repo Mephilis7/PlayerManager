@@ -1,6 +1,6 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.3_Beta4
+version: 1.3_stable
 author: Mephilis7
 commands:
   pman:
@@ -60,6 +60,9 @@ permissions:
     default: op
   pman.list:
     description: Allows usage of /pman list
+    default: op
+  pman.mute:
+    description: Allows usage of /pman mute
     default: op
   pman.set:
     description: Allows usage of /pman set

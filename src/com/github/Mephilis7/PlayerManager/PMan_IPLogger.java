@@ -4,8 +4,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Iterator;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,7 +23,6 @@ public class PMan_IPLogger
   implements Listener
 {
 	
-	@SuppressWarnings("null")
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event){
 		//whenever a player joins the server, do this...
@@ -54,38 +53,61 @@ public class PMan_IPLogger
 		{
 			loadPlayerLog();
 			String path = "players."+player;
-			VAR.pLog.addDefault(path+".lastLogin", null);
-			VAR.pLog.addDefault(path+".lastLogout", null);
-			VAR.pLog.addDefault(path+".Allowed to fly", Bukkit.getServer().getAllowFlight());
-			VAR.pLog.addDefault(path+".Displayed Name", Bukkit.getServer().getPlayer(player).getDisplayName());
-			VAR.pLog.addDefault(path+".Hidden", false);
-			VAR.pLog.addDefault(path+".Muted", false);
+			if (!VAR.pLog.isSet(path+".lastLogin"))
+				VAR.pLog.set(path+".lastLogin", Boolean.valueOf(null));
+			if (!VAR.pLog.isSet(path+".lastLogout"))
+				VAR.pLog.set(path+".lastLogout", Boolean.valueOf(null));
+			if (!VAR.pLog.isSet(path+".Allowed to fly"))
+				VAR.pLog.set(path+".Allowed to fly", Boolean.valueOf(Bukkit.getServer().getAllowFlight()));
+			if (!VAR.pLog.isSet(path+".Displayed Name"))
+				VAR.pLog.set(path+".Displayed Name", Bukkit.getServer().getPlayer(player).getDisplayName());
+			if (!VAR.pLog.isSet(path+".Hidden"))
+				VAR.pLog.set(path+".Hidden", Boolean.valueOf(false));
+			if (!VAR.pLog.isSet(path+".Muted"))
+				VAR.pLog.set(path+".Muted", Boolean.valueOf(false));
 				
 			VAR.pLog.set(path+".lastLogin", "["+getDate()+"]");
 			
-			if (VAR.config.getBoolean("LogIP")){	
-				VAR.pLog.addDefault(path+".IP Address", null);
-				int i = 0;
-				String[] str = null;
-				boolean there = false;
-				for (Iterator it = VAR.pLog.getList(path+".IP Address").iterator(); it.hasNext();){
-					if (str[i].equals(null)){
-						str[i] = it.next().toString();
-					} else {str[i+1] = it.next().toString();}
-					if (str[i].equalsIgnoreCase(playerip[0]))
-						there = true;
-					i++;
+			
+			if (VAR.config.getBoolean("LogIP")){
+				if (!VAR.pLog.isSet(path+".IP Address")){
+					VAR.pLog.set(path+".IP Address", null);
+					VAR.pLog.save(VAR.f_player);
+					loadPlayerLog();
 				}
-				if (!there)
-					if (str[i].equals(null)){
-						str[i] = playerip[0];
-					} else { str[i+1] = playerip[0]; }
-				VAR.pLog.set(path+".IP Address", str);
+				boolean there = false;
+				if (VAR.pLog.getList(path+".IP Adress".isEmpty()) != null){
+					String s = VAR.pLog.getList(path+".IP Address").toString();
+					s = s.replace("[", "");
+					s = s.replace("]", "");
+					s = s.replace(" ", "");
+					for (String str: s.split(",")){
+						if (str.equalsIgnoreCase(playerip[0]))
+							there = true;
+					}
+					String[] str = s.split(",");
+					if (!there){
+						String[] st = new String[str.length+1];
+						int i = 0;
+						while (i < str.length){
+							st[i] = str[i];
+							i++;
+						}
+						st[str.length] = playerip[0].toString();
+						VAR.pLog.set(path+".IP Address", Arrays.asList(st));
+					}
+				} else {
+					String[] st = {playerip[0]};
+					VAR.pLog.set(path+".IP Address", Arrays.asList(st));	
+				}
 			}
+			VAR.pLog.save(VAR.f_player);
+			
+			//resetting the values, as defined in the config file
 			
 			if (VAR.config.getString("reset").toLowerCase().contains("fly")){
 				Bukkit.getServer().getPlayer(player).setAllowFlight(Bukkit.getServer().getAllowFlight());
-				VAR.pLog.set(path+".Allowed to fly", Bukkit.getServer().getAllowFlight());
+				VAR.pLog.set(path+".Allowed to fly", Boolean.valueOf(Bukkit.getServer().getAllowFlight()));
 			} else {
 				Bukkit.getServer().getPlayer(player).setAllowFlight(VAR.pLog.getBoolean(path+".Allowed to fly"));
 			}
@@ -99,12 +121,12 @@ public class PMan_IPLogger
 			}
 			if (VAR.config.getString("reset").toLowerCase().contains("hidden")){
 				Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer());
-				VAR.pLog.set(path+".Hidden", false);
+				VAR.pLog.set(path+".Hidden", Boolean.valueOf(false));
 			} else if (VAR.pLog.getBoolean(path+".Hidden")){
 				Bukkit.getServer().getPlayer(player).hidePlayer(event.getPlayer());
 			} else { Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer()); }
 			if (VAR.config.getString("reset").toLowerCase().contains("muted"))
-				VAR.pLog.set(path+".Muted", false);
+				VAR.pLog.set(path+".Muted", Boolean.valueOf(false));
 				
 				
 			VAR.pLog.save(VAR.f_player);
@@ -183,7 +205,9 @@ public class PMan_IPLogger
 			return;
 		}
 		if (muted){
-			event.getPlayer().sendMessage(ChatColor.RED+"You've been muted. Stop trying to chat.");
+			String msg = VAR.config.getString("mutedMsg");
+			msg = replace(msg, event.getPlayer());
+			event.getPlayer().sendMessage(VAR.config.getString(msg));
 			event.setCancelled(true);
 		}
 	}
@@ -200,9 +224,9 @@ public class PMan_IPLogger
 	public static String getDate(){
 	    Calendar c = Calendar.getInstance();
 	    int month = c.get(2) + 1;
-	    String date = Integer.toString(month);
+	    String date = Integer.toString(c.get(5));
 	    date = date + "/";
-	    date = date + c.get(5) + "/";
+	    date = date + month + "/";
 	    date = date + c.get(1) + " ";
 	    date = date + c.get(11) + ":";
 	    date = date + c.get(12) + ".";
