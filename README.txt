@@ -26,11 +26,10 @@ Features:
 - Set various properties per player by typing /pman set!
 - Show/Hide your players!
 - Mute spammers!
-- Console support
 - Supports Rei's minimap
 - Custom join/quit messages
 - Fully configurable
-- Logs all IPs and more info to plugins/PlayerManager/PlayerLog.yml
+- Logs all IPs and more information to plugins/PlayerManager/PlayerLog.yml
 - Blocks bots from joining the server
 - SourceCode on GitHub!
 => https://github.com/Mephilis7/PlayerManager
@@ -77,6 +76,7 @@ pman.info.allowFlight - Permission to be shown whether the target is allowed to 
 pman.info.hidden - Permission to be shown whether the target is hidden
 pman.info.mute - Permission to be shown whether the target is muted
 pman.list - Permission to use /pman list
+pman.mute - Permission to /pman mute somebody
 pman.set - Permission to use /pman set
 pman.set.fly - Permission to set AllowFlight per player
 pman.set.food - Permission to set food level of a player
@@ -90,8 +90,10 @@ Planned Features:
 -----------------
 
 - Hooking into Vault to display group and money
-- Add first/last login and last logout to /pman info
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
+- /report a player, and, for admins, /check how many times he has been reported because of what.
+- /rules to view the server rules. After typing /acceptrules, people are teleported (optional) and configurable commands are executed. Nice for making sure that players read your rules!
+- Configurable polls, you players could then /vote whithin a defined amount of time for an option.
 - improve the BotBlocker (one IP bound to one name and vice versa)
 
 
