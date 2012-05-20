@@ -1,7 +1,7 @@
 PlayerManager v1.4 by Mephilis7
 =====================================
 
-PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R1.3
+PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R2.0
 It lets you manage your players better. What it's able to do exactly should be read below.
 
 
@@ -97,7 +97,7 @@ Planned Features:
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
 - /report a player, and, for admins, /check how many times he has been reported because of what.
 - Optional teleportation when typing /acceptrules
-- Make the /rules command Essentials compatible
+- Make the plugin recognize that someone typed /rules, if the command leads to another plugin (i.e. Essentials)
 - Configurable polls, you players could then /vote whithin a defined amount of time for an option.
 - improve the BotBlocker (one IP bound to one name and vice versa)
 
@@ -109,6 +109,7 @@ v1.4
 - Added /rules and /acceptrules
 - Updatet the config.yml to version 2
 - Config.yml now saves your changes when it regenerates/updates
+- Built against CB v1.2.5-R2.0
 
 v1.3 stable
 - "/pman set" now tells you when your arguments where wrong
