@@ -1,4 +1,4 @@
-PlayerManager v1.3_stable by Mephilis7
+PlayerManager v1.4 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R1.3
@@ -23,10 +23,11 @@ Features:
     - Whether flying is allowed or not.
     - Whether he is hidden
     - Whether he is muted
+- Allows forcing people to read the rules, by typing /rules and then /acceptrules.
 - Set various properties per player by typing /pman set!
 - Show/Hide your players!
 - Mute spammers!
-- Supports Rei's minimap
+- Supports Rei's Minimap
 - Custom join/quit messages
 - Fully configurable
 - Logs all IPs and more information to plugins/PlayerManager/PlayerLog.yml
@@ -45,6 +46,8 @@ Commands:
 /pman set <property> <player> <value> - Setting of various properties per player.
 /pman show <player> - Shows a hidden player again.
 /pman reload - Reloads the config.yml
+/rules - View the rules, as customized in config.yml
+/acceptrules- Accept the server rules
 
 
 /pman set Properties:
@@ -77,6 +80,7 @@ pman.info.hidden - Permission to be shown whether the target is hidden
 pman.info.mute - Permission to be shown whether the target is muted
 pman.list - Permission to use /pman list
 pman.mute - Permission to /pman mute somebody
+pman.rules - Permission to use /rules and /acceptrules
 pman.set - Permission to use /pman set
 pman.set.fly - Permission to set AllowFlight per player
 pman.set.food - Permission to set food level of a player
@@ -92,13 +96,19 @@ Planned Features:
 - Hooking into Vault to display group and money
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
 - /report a player, and, for admins, /check how many times he has been reported because of what.
-- /rules to view the server rules. After typing /acceptrules, people are teleported (optional) and configurable commands are executed. Nice for making sure that players read your rules!
+- Optional teleportation when typing /acceptrules
+- Make the /rules command Essentials compatible
 - Configurable polls, you players could then /vote whithin a defined amount of time for an option.
 - improve the BotBlocker (one IP bound to one name and vice versa)
 
 
 Changelog:
 ----------
+
+v1.4
+- Added /rules and /acceptrules
+- Updatet the config.yml to version 2
+- Config.yml now saves your changes when it regenerates/updates
 
 v1.3 stable
 - "/pman set" now tells you when your arguments where wrong

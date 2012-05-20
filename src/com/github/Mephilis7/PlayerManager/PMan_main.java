@@ -17,16 +17,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/*TODO:
- * - add more information for /pman info
- * - censor defined bad words
- * - block logger that notifies everybody whith permission that someone has placed a "bad" block
- * - add a hook into Vault
- * - teleporting
- */
 public class PMan_main extends JavaPlugin {
 	
 	private static Boolean online = false;
+	private PMan_CmdRules RulesExecutor;
 	private PMan_IPLogger ip = new PMan_IPLogger();
 	ChatColor green = ChatColor.GREEN;
 	ChatColor darkgreen = ChatColor.DARK_GREEN;
@@ -37,11 +31,13 @@ public class PMan_main extends JavaPlugin {
 	public void onDisable() {
 		VAR.log.info(VAR.logHeader + "Shutdown.");
 	}
+	
+	@Override
 	public void onEnable() {
 		checkConfig();
 		try {
-			loadPlayerLog();
 			VAR.config.load(VAR.f_config);
+			loadPlayerLog();
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
@@ -55,10 +51,14 @@ public class PMan_main extends JavaPlugin {
 		if (!VAR.config.getBoolean("enable")){
 			Bukkit.getPluginManager().disablePlugin(this);
 		}
-		//checking whether the config "punishment" is kick, ban or none. If not, regenerate the config.yml
-		if (VAR.config.getInt("version") != 1)
-			newConfig();
+		if (VAR.config.getInt("version") != 2)
+			update();
 		VAR.logit = VAR.config.getBoolean("logToConsole");
+		if (VAR.config.getBoolean("enableRules")){
+			RulesExecutor = new PMan_CmdRules(this);
+			getCommand("rules").setExecutor(RulesExecutor);
+			getCommand("acceptrules").setExecutor(RulesExecutor);
+		}
 		getServer().getPluginManager().registerEvents(this.ip, this);
 		VAR.log.info(VAR.logHeader + "Ready to manage your players!");
 	}
@@ -527,7 +527,7 @@ public class PMan_main extends JavaPlugin {
 		new File(VAR.directory).mkdir();
 		VAR.config = new YamlConfiguration();
 		if (!VAR.f_config.exists()){
-			newConfig();
+			update();
 		} else {
 			try {
 				VAR.config.load(VAR.f_config);
@@ -538,34 +538,61 @@ public class PMan_main extends JavaPlugin {
 			} catch (InvalidConfigurationException e1) {
 				e1.printStackTrace();
 			}
-			if (VAR.config.getInt("version") != 1)
-				newConfig();
+			if (VAR.config.getInt("version") != 2)
+				update();
 		}
 	}
-	private void denied(CommandSender sender){
+	void denied(CommandSender sender){
 		sender.sendMessage(VAR.Header + ChatColor.RED + "You don't have permission to use that command.");
 	}
-	public void newConfig(){
-		//generate a fresh config.yml
+	public void update(){
+		Boolean logConsole = VAR.config.getBoolean("logToConsole");
+		String reset = VAR.config.getString("reset", "Fly;Hidden");
+		Boolean cJQ = VAR.config.getBoolean("customJQ", true);
+		String jmsg = VAR.config.getString("joinMsg", "'&aHello %NAME!'");
+		String jmsgO = VAR.config.getString("joinMsgOther", "'&bPlayer &e%NAME &b(&c%IP&b) has connected.'");
+		String qmsg = VAR.config.getString("quitMsg", "'&e%NAME has left the game.'");
+		String mmsg = VAR.config.getString("mutedMsg", "'&cYou have been muted.'");
+		String order = VAR.config.getString("order", "Name;IP;World;Xp;Muted");
+		Boolean eRule = VAR.config.getBoolean("enableRules", true);
+		String REXCMD = VAR.config.getString("RulesExCmd", "'give %NAME stone_sword 1|say WELCOME %NAME TO THE SERVER!'");
+		String rRules = "";
+		int i = 1;
+		if (!VAR.config.isSet("Rules1")){
+			rRules = "'&3---- &bold%SERVERNAME Rules&reset ----'--newLine--'&1[1] &cDo not grief.'--newLine--'&1[2] &cBe polite.'--newLine--'&1[3] &aHave fun :D'";
+		} else {
+			while (VAR.config.isSet("Rules"+i)){
+			rRules = rRules + VAR.config.getString("Rules"+i)+"--newLine--";
+			i++;
+			}
+		}
+		String[] outRules = rRules.split("--newLine--");
+		Boolean logIP = VAR.config.getBoolean("logIP", true);
+		Boolean bBlock = VAR.config.getBoolean("enableBotBlock", false);
+		Boolean logDouble = VAR.config.getBoolean("logDuplicatedIps", false);
+		String punish = VAR.config.getString("punishment", "kick");
+		String map = VAR.config.getString("supportReiMinimap", "false");
+		
 		try {
 			VAR.f_config.createNewFile();
 			FileWriter fstream = new FileWriter(VAR.f_config);
 			BufferedWriter out = new BufferedWriter(fstream);
 			out.write("# Here are all variables you may need for the messages:\n");
-			out.write("# &0 - Black          &6 - Gold          &b - Aqua\n");
-			out.write("# &1 - Dark Blue      &7 - Gray          &c - Red\n");
-			out.write("# &2 - Dark Green     &8 - Dark Gray     &d - Light Purple\n");
-			out.write("# &3 - Dark Aqua      &9 - Blue          &e - Yellow\n");
-			out.write("# &4 - Dark Red       &a - Green         &f - White\n");
-			out.write("# &5 - Dark Purple\n");
+			out.write("# &0 - Black          &6 - Gold          &c - Red\n");
+			out.write("# &1 - Dark Blue      &7 - Gray          &d - Light Purple\n");
+			out.write("# &2 - Dark Green     &8 - Dark Gray     &e - Yellow\n");
+			out.write("# &3 - Dark Aqua      &9 - Blue          &f - White\n");
+			out.write("# &4 - Dark Red       &a - Green         &bold - Bold\n");
+			out.write("# &5 - Dark Purple    &b - Aqua          &italic - Italic\n");
+			out.write("# &strike - Striked   &under - Underline &magic - Magic       &reset - Reset\n");
 			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS\n");
-			out.write("# %ONLINELIST\n\n\n");
+			out.write("# %ONLINELIST  - %SERVERNAME\n\n\n");
 			
 			
 			out.write("# Enable the plugin?\n");
 			out.write("enable: true\n");
 			out.write("# Log usage of commands to console?\n");
-			out.write("logToConsole: true\n");
+			out.write("logToConsole: "+logConsole+"\n");
 			out.write("# Do you want player modifications (name,allowFly,...) to be reset\n");
 			out.write("# when the player logs out and back in? Separate with ';'\n");
 			out.write("# All modifications not specified here will be re-enabled.\n");
@@ -574,18 +601,18 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Hidden: Show the player again.\n");
 			out.write("# Muted: Allow the player to speak if he/she has been muted.\n");
 			out.write("# Example: Fly;Hidden\n");
-			out.write("reset: Fly;Hidden\n\n");
+			out.write("reset: "+reset+"\n\n");
 			
 			out.write("# Do you want custom join/quit messages?\n");
-			out.write("customJQ: true\n");
-			out.write("# Set your join message here.\n");
-			out.write("joinMsg: '&aHello %NAME!'\n");
-			out.write("# This is the message other players will see.\n");
-			out.write("joinMsgOther: '&bPlayer &e%NAME &b(&c%IP&b) has connected.'\n");
-			out.write("# The quit message when somebody leaves your server.\n");
-			out.write("quitMsg: '&e%NAME has left the game.'\n");
-			out.write("# The message a muted player is shown when he tries to chat.\n");
-			out.write("mutedMsg: '&cYou have been muted.'\n\n");
+			out.write("customJQ: "+cJQ+"\n");
+			out.write("# Set your join message here. MUST BE SURROUNDED BY '\n");
+			out.write("joinMsg: '"+jmsg.trim()+"'\n");
+			out.write("# This is the message other players will see. MUST BE SURROUNDED BY '\n");
+			out.write("joinMsgOther: '"+jmsgO.trim()+"'\n");
+			out.write("# The quit message when somebody leaves your server. MUST BE SURROUNDED BY '\n");
+			out.write("quitMsg: '"+qmsg.trim()+"'\n");
+			out.write("# The message a muted player is shown when he tries to chat. MUST BE SURROUNDED BY '\n");
+			out.write("mutedMsg: '"+mmsg.trim()+"'\n\n");
 			
 			out.write("# Define the order of the information shown on /pinfo here. Separate the words with ';'\n");
 			out.write("# Name: The player's name\n");
@@ -603,18 +630,36 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Hidden: Whether the player is hidden or not.\n");
 			out.write("# Muted: Whether the player is muted or not.\n");
 			out.write("# Example: Name;IP;World;Xp;Muted\n");
-			out.write("order: Name;IP;World;Xp;Muted\n\n");
+			out.write("order: "+order+"\n\n");
+			
+			out.write("# Should the /rules and /acceptrules commands be enabled?\n");
+			out.write("enableRules: "+eRule+"\n");
+			out.write("# This option determines the commands which are executed when someone types /acceptrules\n");
+			out.write("# Separate the commands with '|' and separate the arguments with spaces.\n");
+			out.write("# The % Variables can be used here, i.e. %NAME, &IP, %WORLD...\n");
+			out.write("# Example: give %NAME stone_sword 1|say WELCOME %NAME TO THE SERVER!\n");
+			out.write("RulesExCmd: '"+REXCMD.trim()+"'\n");
+			out.write("# Write your rules here. It does not matter how long they are, just make sure to\n");
+			out.write("# always increase the Rules[number] by one. You can have Rules1 - Rules5832, but not Rules2 - Rules4!\n");
+			out.write("# Each of those Rules[number] will be written on a new line.\n");
+			out.write("# It's higly recommended to surround them with '\n");
+			i = 0;
+			while (i < outRules.length){
+				out.write("Rules"+(i+1)+": '" + outRules[i].trim() +"'\n");
+				i++;
+			}
+			out.write("\n");
 			
 			out.write("# Should every player's IP address be logged?\n");
-			out.write("LogIP: true\n");
+			out.write("LogIP: "+logIP+"\n");
 			out.write("# Should BotBlocking be enabled?\n");
-			out.write("enableBotBlock: true\n");
+			out.write("enableBotBlock: "+bBlock+"\n");
 			out.write("# Should two players with the same IP be logged in a separated file?\n");
-			out.write("logDuplicatedIps: true\n");
+			out.write("logDuplicatedIps: "+logDouble+"\n");
 			out.write("# What should I do if I find two players with\n");
 			out.write("# the same IP? (Normally one of them is a bot then)\n");
 			out.write("# Accepted are kick/ban/none.\n");
-			out.write("punishment: kick\n\n");
+			out.write("punishment: "+punish+"\n\n");
 			
 			out.write("# Should Rei's Minimap be supported? Separate tags with ';'\n");
 			out.write("# false: Disables. If used in combination with other tags, the minimap still won't be supported.\n");
@@ -626,17 +671,19 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Squid: Allows view of squids.\n");
 			out.write("# Other: Allows view of other living, i.e. golems.\n");
 			out.write("# Example: Player;Mob;Other\n");
-			out.write("supportReiMinimap: false\n\n\n");
+			out.write("supportReiMinimap: "+map+"\n\n\n");
 			
 			
 			out.write("# DO NOT CHANGE THIS!\n");
-			out.write("version: 1\n\n");
+			out.write("version: 2\n\n");
 			
 			out.close();
-			VAR.log.warning(VAR.logHeader + "Default config.yml generated.");
-		} catch (Exception ex) {
+			
+			VAR.config.load(VAR.f_config);
+		} catch (Exception ex){
 			ex.printStackTrace();
 		}
+		VAR.log.info(VAR.logHeader + "Config.yml updatet to version "+VAR.config.getInt("version"));
 	}
 	public static int abs(int a){
 		if (a < 0)

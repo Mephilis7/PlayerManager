@@ -1,8 +1,16 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.3_stable
+version: 1.4
 author: Mephilis7
 commands:
+  rules:
+    description: Prints the rules.
+    usage: <command>
+    permission: pman.rules
+  acceptrules:
+    description: Accepts the server rules.
+    usage: <command>
+    permission: pman.rules
   pman:
     description: Helps you managing your players.
     usage: 'Type /pman for help.'
@@ -64,6 +72,9 @@ permissions:
   pman.mute:
     description: Allows usage of /pman mute
     default: op
+  pman.rules:
+    description: Allows usage of /rules and /acceptrules
+    default: true
   pman.set:
     description: Allows usage of /pman set
     default: op

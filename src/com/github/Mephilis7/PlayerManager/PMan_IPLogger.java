@@ -65,6 +65,8 @@ public class PMan_IPLogger
 				VAR.pLog.set(path+".Hidden", Boolean.valueOf(false));
 			if (!VAR.pLog.isSet(path+".Muted"))
 				VAR.pLog.set(path+".Muted", Boolean.valueOf(false));
+			if (!VAR.pLog.isSet(path+".Has accepted rules") && VAR.config.getBoolean("enableRules"))
+				VAR.pLog.set(path+".Has accepted rules", Boolean.valueOf(false));
 				
 			VAR.pLog.set(path+".lastLogin", "["+getDate()+"]");
 			
@@ -240,6 +242,7 @@ public class PMan_IPLogger
 		str = str.replace("%GAMEMODE", player.getGameMode().toString());
 		str = str.replace("%ONLINEPLAYERS", Integer.toString(Bukkit.getServer().getOnlinePlayers().length));
 		str = str.replace("%MAXPLAYERS", Integer.toString(Bukkit.getServer().getMaxPlayers()));
+		str = str.replace("%SERVERNAME", Bukkit.getServer().getName());
 		String s = "";
 		for (Player p: Bukkit.getServer().getOnlinePlayers()){
 			s = s + p.getDisplayName()+ ", ";
