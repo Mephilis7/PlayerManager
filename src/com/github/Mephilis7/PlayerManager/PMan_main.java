@@ -596,17 +596,17 @@ public class PMan_main extends JavaPlugin {
 		Boolean logConsole = VAR.config.getBoolean("logToConsole");
 		String reset = VAR.config.getString("reset", "Fly;Hidden");
 		Boolean cJQ = VAR.config.getBoolean("customJQ", true);
-		String jmsg = VAR.config.getString("joinMsg", "'&aHello %NAME!'");
-		String jmsgO = VAR.config.getString("joinMsgOther", "'&bPlayer &e%NAME &b(&c%IP&b) has connected.'");
-		String qmsg = VAR.config.getString("quitMsg", "'&e%NAME has left the game.'");
-		String mmsg = VAR.config.getString("mutedMsg", "'&cYou have been muted.'");
+		String jmsg = VAR.config.getString("joinMsg", "&aHello %NAME!");
+		String jmsgO = VAR.config.getString("joinMsgOther", "&bPlayer &e%NAME &b(&c%IP&b) has connected.");
+		String qmsg = VAR.config.getString("quitMsg", "&e%NAME has left the game.");
+		String mmsg = VAR.config.getString("mutedMsg", "&cYou have been muted.");
 		String order = VAR.config.getString("order", "Name;IP;World;Xp;Muted");
 		Boolean eRule = VAR.config.getBoolean("enableRules", true);
-		String REXCMD = VAR.config.getString("RulesExCmd", "'give %NAME stone_sword 1|say WELCOME %NAME TO THE SERVER!'");
+		String REXCMD = VAR.config.getString("RulesExCmd", "give %NAME stone_sword 1|say WELCOME %NAME TO THE SERVER!");
 		String rRules = "";
 		int i = 1;
 		if (!VAR.config.isSet("Rules1")){
-			rRules = "'&3---- &bold%SERVERNAME Rules&reset ----'--newLine--'&1[1] &cDo not grief.'--newLine--'&1[2] &cBe polite.'--newLine--'&1[3] &aHave fun :D'";
+			rRules = "&3---- &bold%SERVERNAME Rules&reset ------newLine--&1[1] &cDo not grief.--newLine--&1[2] &cBe polite.--newLine--&1[3] &aHave fun :D";
 		} else {
 			while (VAR.config.isSet("Rules"+i)){
 			rRules = rRules + VAR.config.getString("Rules"+i)+"--newLine--";
