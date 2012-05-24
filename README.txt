@@ -1,4 +1,4 @@
-PlayerManager v1.4 by Mephilis7
+PlayerManager v1.5 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R2.0
@@ -24,6 +24,8 @@ Features:
     - Whether he is hidden
     - Whether he is muted
 - Allows forcing people to read the rules, by typing /rules and then /acceptrules.
+    - Configurable prevention of actions, if the /rules have not been accepted yet.
+    - Also supports other plugins that already include the /rules command!
 - Set various properties per player by typing /pman set!
 - Show/Hide your players!
 - Mute spammers!
@@ -44,6 +46,7 @@ Commands:
 /pman list - Shows all connected players with their gamemode.
 /pman mute <player> - Mutes a player.
 /pman set <property> <player> <value> - Setting of various properties per player.
+/pman srtp - Set the point to teleport players to when they type /acceptrules for the first time.
 /pman show <player> - Shows a hidden player again.
 /pman reload - Reloads the config.yml
 /rules - View the rules, as customized in config.yml
@@ -78,9 +81,11 @@ pman.info.distance - Permission to be shown distance between target and command 
 pman.info.allowFlight - Permission to be shown whether the target is allowed to fly or not.
 pman.info.hidden - Permission to be shown whether the target is hidden
 pman.info.mute - Permission to be shown whether the target is muted
+pman.info.rules - Permission to be shown whether the target has accepted the rules
 pman.list - Permission to use /pman list
 pman.mute - Permission to /pman mute somebody
 pman.rules - Permission to use /rules and /acceptrules
+pman.rulestp - Permission to use /pman srtp
 pman.set - Permission to use /pman set
 pman.set.fly - Permission to set AllowFlight per player
 pman.set.food - Permission to set food level of a player
@@ -96,14 +101,19 @@ Planned Features:
 - Hooking into Vault to display group and money
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
 - /report a player, and, for admins, /check how many times he has been reported because of what.
-- Optional teleportation when typing /acceptrules
-- Make the plugin recognize that someone typed /rules, if the command leads to another plugin (i.e. Essentials)
 - Configurable polls, you players could then /vote whithin a defined amount of time for an option.
 - improve the BotBlocker (one IP bound to one name and vice versa)
+- Auto-Check for updates.
 
 
 Changelog:
 ----------
+
+v1.5
+- Got the support for other plugins using /rules working
+- Configurable prevention of actions if the player has not accepted the rules yet
+- Teleporting on /acceptrules
+- Config.yml update to version 3
 
 v1.4
 - Added /rules and /acceptrules

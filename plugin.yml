@@ -1,6 +1,6 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.4
+version: 1.5
 author: Mephilis7
 commands:
   rules:
@@ -66,6 +66,9 @@ permissions:
   pman.info.mute:
     description: Allows showing whether the target is muted
     default: op
+  pman.info.rules:
+    description: Allows showing whether the target has accepted the /rules
+    default: op
   pman.list:
     description: Allows usage of /pman list
     default: op
@@ -75,6 +78,9 @@ permissions:
   pman.rules:
     description: Allows usage of /rules and /acceptrules
     default: true
+  pman.rulestp:
+    description: Allows usage of /pman srtp
+    default: op
   pman.set:
     description: Allows usage of /pman set
     default: op

@@ -22,11 +22,15 @@ public class PMan_main extends JavaPlugin {
 	private static Boolean online = false;
 	private PMan_CmdRules RulesExecutor;
 	private PMan_IPLogger ip = new PMan_IPLogger();
+	private PMan_RulesEventHandler EventHandler = new PMan_RulesEventHandler();
 	ChatColor green = ChatColor.GREEN;
 	ChatColor darkgreen = ChatColor.DARK_GREEN;
 	ChatColor gold = ChatColor.GOLD;
 	ChatColor aqua = ChatColor.AQUA;
 	ChatColor white = ChatColor.WHITE;
+	
+	int configVersion = 3;
+	
 	
 	public void onDisable() {
 		VAR.log.info(VAR.logHeader + "Shutdown.");
@@ -51,13 +55,12 @@ public class PMan_main extends JavaPlugin {
 		if (!VAR.config.getBoolean("enable")){
 			Bukkit.getPluginManager().disablePlugin(this);
 		}
-		if (VAR.config.getInt("version") != 2)
-			update();
 		VAR.logit = VAR.config.getBoolean("logToConsole");
 		if (VAR.config.getBoolean("enableRules")){
 			RulesExecutor = new PMan_CmdRules(this);
 			getCommand("rules").setExecutor(RulesExecutor);
 			getCommand("acceptrules").setExecutor(RulesExecutor);
+			getServer().getPluginManager().registerEvents(this.EventHandler, this);
 		}
 		getServer().getPluginManager().registerEvents(this.ip, this);
 		VAR.log.info(VAR.logHeader + "Ready to manage your players!");
@@ -89,7 +92,12 @@ public class PMan_main extends JavaPlugin {
 						sender.sendMessage(gold + "/pman set name <player> <name|reset>"+white+" - "+darkgreen+"Sets Name");
 						sender.sendMessage(gold + "/pman set xp <player> <level>"+white+" - "+darkgreen+"Sets Xp level");
 						sender.sendMessage(gold + "/pman show <player>"+white+" - "+darkgreen+"Shows a hidden player again.");
+						sender.sendMessage(gold + "/pman srtp"+white+" - "+darkgreen+"Sets the point players will be teleported to when they type /acceptrules.");
 						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reloads the config.yml and the PlayerLog.yml");
+						if (VAR.config.getBoolean("enableRules")){
+							sender.sendMessage(gold + "/rules"+white+" - "+darkgreen+"View the server rules.");
+							sender.sendMessage(gold + "/acceptrules"+white+" - "+darkgreen+"Accept the server rules.");
+						}
 						return true;
 					}
 				}
@@ -112,9 +120,10 @@ public class PMan_main extends JavaPlugin {
 							}
 							
 							VAR.logit = VAR.config.getBoolean("logToConsole");
-							sender.sendMessage(VAR.Header +ChatColor.GREEN+ "config.yml reloaded!");
+							sender.sendMessage(VAR.Header +ChatColor.GREEN+ "config.yml and PlayerLog.yml reloaded!");
 							if (VAR.logit)
-								VAR.log.info(VAR.logHeader + sender.getName() + " reloaded the config.yml");
+								if (sender instanceof Player)
+									VAR.log.info(VAR.logHeader + sender.getName() + " reloaded the config.yml");
 						} else { denied(sender);}
 						return true;
 					}
@@ -124,7 +133,7 @@ public class PMan_main extends JavaPlugin {
 							if (getServer().getOnlinePlayers().length >= 1){
 								sender.sendMessage(gold + "------------------" + green + " PlayerManager " + gold + "-----------------");
 								for (Player on: getServer().getOnlinePlayers()){
-									sender.sendMessage(ChatColor.DARK_GRAY+on.getDisplayName()+ " (" +ChatColor.GRAY+on.getName()+ ")"+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
+									sender.sendMessage(ChatColor.DARK_GRAY+on.getDisplayName()+ " (" +ChatColor.GRAY+on.getName()+ ChatColor.DARK_GRAY+")"+white+" - "+ChatColor.DARK_AQUA+ChatColor.BOLD+on.getGameMode());
 								}
 							} else {sender.sendMessage(VAR.Header + ChatColor.AQUA + "Nobody's online :,(");}
 						} else { denied(sender);}
@@ -235,6 +244,18 @@ public class PMan_main extends JavaPlugin {
 										if (Order[i].equalsIgnoreCase("Muted"))
 											sender.sendMessage(darkgreen + "Muted: " + aqua + VAR.pLog.getBoolean("players."+playerShowInfo.getName()+".Muted"));
 									}
+									if (sender.hasPermission("pman.info.rules") || sender.isOp()){
+										if (VAR.config.getBoolean("enableRules")){
+											if (Order[i].equalsIgnoreCase("Rules")){
+												if (VAR.pLog.getString("players."+playerShowInfo.getName()+".Has accepted rules").equalsIgnoreCase("true"))
+													sender.sendMessage(darkgreen +"Has accepted the rules.");
+												else if (VAR.pLog.getString("players."+playerShowInfo.getName()+".Has accepted rules").equalsIgnoreCase("hasTyped"))
+													sender.sendMessage(darkgreen +"Has read the rules, but not accepted them.");
+												else
+													sender.sendMessage(darkgreen +"Has "+ChatColor.RED+"not"+darkgreen+" read the rules yet!");
+											}
+										}
+									}
 									i++;
 								}
 								sender.sendMessage(gold + "--------------------------------------------------");
@@ -265,9 +286,9 @@ public class PMan_main extends JavaPlugin {
 								if (VAR.logit)
 									VAR.log.info(VAR.logHeader + sender.getName() + " has hidden " + p.getName());
 								try {
-									loadPlayerLog();
 									VAR.pLog.set("players."+args[2]+".Hidden", Boolean.valueOf(true));
 									VAR.pLog.save(VAR.f_player);
+									loadPlayerLog();
 								} catch (Exception ex){
 									ex.printStackTrace();
 								}
@@ -299,9 +320,9 @@ public class PMan_main extends JavaPlugin {
 								if (VAR.logit)
 									VAR.log.info(VAR.logHeader + sender.getName() + " has un-hidden " + p.getName());
 								try {
-									loadPlayerLog();
 									VAR.pLog.set("players."+args[2]+".Hidden", Boolean.valueOf(false));
 									VAR.pLog.save(VAR.f_player);
+									loadPlayerLog();
 								} catch (Exception ex){
 									ex.printStackTrace();
 								}
@@ -340,6 +361,7 @@ public class PMan_main extends JavaPlugin {
 									}
 									
 									VAR.pLog.save(VAR.f_player);
+									loadPlayerLog();
 								} catch (Exception ex){
 									ex.printStackTrace();
 								}
@@ -374,9 +396,9 @@ public class PMan_main extends JavaPlugin {
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has allowed " +args[2]+ " to fly!");
 											try {
-												loadPlayerLog();
 												VAR.pLog.set("players."+args[2]+".Allowed to fly", Boolean.valueOf(true));
 												VAR.pLog.save(VAR.f_player);
+												loadPlayerLog();
 											} catch (Exception ex){
 												ex.printStackTrace();
 											}
@@ -386,9 +408,9 @@ public class PMan_main extends JavaPlugin {
 												if (VAR.logit)
 													VAR.log.info(VAR.logHeader + sender.getName() + " has disallowed " +args[2]+ " to fly!");
 												try{
-													loadPlayerLog();
 													VAR.pLog.set("players."+args[2]+".Allowed to fly", Boolean.valueOf(false));
 													VAR.pLog.save(VAR.f_player);
+													loadPlayerLog();
 												} catch (Exception ex){
 													ex.printStackTrace();
 												}
@@ -411,7 +433,7 @@ public class PMan_main extends JavaPlugin {
 											getServer().getPlayer(args[2]).setHealth(20);
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has filled up the health of " +args[2]);
-										} else { getServer().getPlayer(args[2]).setHealth(Integer.valueOf(args[3]));
+										} else { getServer().getPlayer(args[2]).setHealth(Integer.parseInt(args[3]));
 										if (VAR.logit)
 											VAR.log.info(VAR.logHeader + sender.getName() + " has set the health of " +args[2]+ " to " +args[3]);
 										}
@@ -439,11 +461,7 @@ public class PMan_main extends JavaPlugin {
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has emptied the food bar of "+args[2]);
 										} else {
-											try{
-											getServer().getPlayer(args[2]).setFoodLevel(Integer.valueOf(args[3]));
-											} catch (Exception e){
-												sender.sendMessage(VAR.Header+ChatColor.RED+"The food level has to be a number!");
-											}
+											getServer().getPlayer(args[2]).setFoodLevel(Integer.parseInt(args[3]));
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has set the food level of "+args[2]+" to "+args[3]);
 										}
@@ -491,6 +509,7 @@ public class PMan_main extends JavaPlugin {
 											loadPlayerLog();
 											VAR.pLog.set("players."+args[2]+".Displayed Name", getServer().getPlayer(args[2]).getName());
 											VAR.pLog.save(VAR.f_player);
+											VAR.config.load(VAR.f_config);
 										} catch (Exception ex){
 											ex.printStackTrace();
 										}
@@ -505,6 +524,7 @@ public class PMan_main extends JavaPlugin {
 										loadPlayerLog();
 										VAR.pLog.set("players."+args[2]+".Displayed Name", args[3]);
 										VAR.pLog.save(VAR.f_player);
+										VAR.config.load(VAR.f_config);
 									} catch (Exception ex){
 										ex.printStackTrace();
 									}
@@ -518,6 +538,31 @@ public class PMan_main extends JavaPlugin {
 						sender.sendMessage(VAR.Header + ChatColor.RED + "Your arguments have not been recognized.");
 						sender.sendMessage(VAR.Header + ChatColor.RED + "Type /pman for more information.");
 					} else { denied(sender);}
+				}
+				//Set /acceptrules SpawnPoint
+				if (args[0].equalsIgnoreCase("srtp")){
+					if (sender.hasPermission("pman.rulestp") || sender.isOp()){
+						if (sender instanceof Player){
+							try{
+								checkConfig();
+								VAR.config.set("RulesTpWorld", ((Player) sender).getWorld().getName());
+								VAR.config.set("RulesTpX", ((Player) sender).getLocation().getX());
+								VAR.config.set("RulesTpY", ((Player) sender).getLocation().getY());
+								VAR.config.set("RulesTpZ", ((Player) sender).getLocation().getZ());
+								VAR.config.set("RulesTpPitch", ((Player) sender).getLocation().getPitch());
+								VAR.config.set("RulesTpYaw", ((Player) sender).getLocation().getYaw());
+								VAR.config.set("RulesTeleport", Boolean.valueOf(true));
+								VAR.config.save(VAR.f_config);
+								VAR.config.load(VAR.f_config);
+								update();
+							} catch (Exception ex){
+								ex.printStackTrace();
+							}
+							sender.sendMessage(VAR.Header +green+"Teleportation point set.");
+							return true;
+						} else sender.sendMessage(ChatColor.YELLOW+"Sorry, but you have to be a player to set the TP point.");
+					} else denied(sender);
+					return true;
 				}
 				sender.sendMessage(VAR.Header + ChatColor.RED +"False amount of arguments! Type /pman for help.");
 		}return true;
@@ -538,8 +583,10 @@ public class PMan_main extends JavaPlugin {
 			} catch (InvalidConfigurationException e1) {
 				e1.printStackTrace();
 			}
-			if (VAR.config.getInt("version") != 2)
+			if (VAR.config.getInt("version") != configVersion){
 				update();
+				VAR.log.info(VAR.logHeader + "Config.yml updatet to version " + configVersion);
+			}
 		}
 	}
 	void denied(CommandSender sender){
@@ -567,7 +614,16 @@ public class PMan_main extends JavaPlugin {
 			}
 		}
 		String[] outRules = rRules.split("--newLine--");
-		Boolean logIP = VAR.config.getBoolean("logIP", true);
+		String PreventRNA = VAR.config.getString("PreventNotAccepted", "Move[10];DamageOthers;PickUpDrops;BlockBreak");
+		String RNAMsg = VAR.config.getString("RulesNotAcceptedMsg", "&cYou are not allowed to do this until you accepted the server rules! Type &2/acceptrules&c!");
+		String RNADSMsg = VAR.config.getString("RulesNotAcceptedDmgSelfMsg", "&eThis player has not accepted the rules yet. Let him live until then ;)");
+		Boolean RulesTp = VAR.config.getBoolean("RulesTeleport", false);
+		String RTPW = VAR.config.getString("RulesTpWorld", "world");
+		double RTPX = VAR.config.getDouble("RulesTpX", 0.0);
+		double RTPY = VAR.config.getDouble("RulesTpY", 64.0);
+		double RTPZ = VAR.config.getDouble("RulesTpZ", 0.0);
+		double RTPP = VAR.config.getDouble("RulesTpPitch", 0.0);
+		double RTPYaw = VAR.config.getDouble("RulesTpYaw", 0.0);
 		Boolean bBlock = VAR.config.getBoolean("enableBotBlock", false);
 		Boolean logDouble = VAR.config.getBoolean("logDuplicatedIps", false);
 		String punish = VAR.config.getString("punishment", "kick");
@@ -586,7 +642,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# &5 - Dark Purple    &b - Aqua          &italic - Italic\n");
 			out.write("# &strike - Striked   &under - Underline &magic - Magic       &reset - Reset\n");
 			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS\n");
-			out.write("# %ONLINELIST  - %SERVERNAME\n\n\n");
+			out.write("# %ONLINELIST  - %SERVERNAME\n\n\n\n");
 			
 			
 			out.write("# Enable the plugin?\n");
@@ -601,7 +657,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Hidden: Show the player again.\n");
 			out.write("# Muted: Allow the player to speak if he/she has been muted.\n");
 			out.write("# Example: Fly;Hidden\n");
-			out.write("reset: "+reset+"\n\n");
+			out.write("reset: "+reset+"\n\n\n");
+			
 			
 			out.write("# Do you want custom join/quit messages?\n");
 			out.write("customJQ: "+cJQ+"\n");
@@ -612,7 +669,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# The quit message when somebody leaves your server. MUST BE SURROUNDED BY '\n");
 			out.write("quitMsg: '"+qmsg.trim()+"'\n");
 			out.write("# The message a muted player is shown when he tries to chat. MUST BE SURROUNDED BY '\n");
-			out.write("mutedMsg: '"+mmsg.trim()+"'\n\n");
+			out.write("mutedMsg: '"+mmsg.trim()+"'\n\n\n");
+			
 			
 			out.write("# Define the order of the information shown on /pinfo here. Separate the words with ';'\n");
 			out.write("# Name: The player's name\n");
@@ -629,8 +687,10 @@ public class PMan_main extends JavaPlugin {
 			out.write("# AllowFlight: Whether the player is allowed to fly or not.\n");
 			out.write("# Hidden: Whether the player is hidden or not.\n");
 			out.write("# Muted: Whether the player is muted or not.\n");
+			out.write("# Rules: Whether the player has read and accepted the rules or not.\n");
 			out.write("# Example: Name;IP;World;Xp;Muted\n");
-			out.write("order: "+order+"\n\n");
+			out.write("order: "+order+"\n\n\n");
+			
 			
 			out.write("# Should the /rules and /acceptrules commands be enabled?\n");
 			out.write("enableRules: "+eRule+"\n");
@@ -650,8 +710,34 @@ public class PMan_main extends JavaPlugin {
 			}
 			out.write("\n");
 			
-			out.write("# Should every player's IP address be logged?\n");
-			out.write("LogIP: "+logIP+"\n");
+			out.write("# Prevent players who have not accepted the rules yet from doing the following actions.\n");
+			out.write("# As always, separate those actions with ';'\n");
+			out.write("# BlockBreak: Prevent them from breaking blocks.\n");
+			out.write("# BlockPlace: Prevent them from placing blocks.\n");
+			out.write("# Chat: Prevent them from chatting.\n");
+			out.write("# DamageSelf: Prevent them from being hurt by mobs or other players.\n");
+			out.write("# DamageOthers: Prevent them from hurting any other player or mob.\n");
+			out.write("# Move[]: Keep them in a defined radius from the spawn point.\n");
+			out.write("# PickUpDrops: Don't let them pick up any items.\n");
+			out.write("# Example: Move[10];DamageOthers;PickUpDrops;BlockBreak\n");
+			out.write("PreventNotAccepted: '"+PreventRNA+"'\n");
+			out.write("# This is the message your players will be shown if they try to do anything you've specified above, except picking up drops.\n");
+			out.write("RulesNotAcceptedMsg: '"+RNAMsg+"'\n");
+			out.write("# This is the message a player will be shown when he tries to damage a player who has not accepted the rules yet.\n");
+			out.write("# This only has an effect if you included DamageSelf above.\n");
+			out.write("RulesNotAcceptedDmgSelfMsg: '"+RNADSMsg+"'\n\n");
+			
+			out.write("# Enable teleporting when typing /acceptrules for the first time?\n");
+			out.write("RulesTeleport: "+RulesTp+"\n");
+			out.write("# The position they will be teleported to. Better do this in-game by typing /pman srtp.\n");
+			out.write("RulesTpWorld: "+RTPW+"\n");
+			out.write("RulesTpX: "+RTPX+"\n");
+			out.write("RulesTpY: "+RTPY+"\n");
+			out.write("RulesTpZ: "+RTPZ+"\n");
+			out.write("RulesTpPitch: "+RTPP+"\n");
+			out.write("RulesTpYaw: "+RTPYaw+"\n\n\n");
+			
+			
 			out.write("# Should BotBlocking be enabled?\n");
 			out.write("enableBotBlock: "+bBlock+"\n");
 			out.write("# Should two players with the same IP be logged in a separated file?\n");
@@ -659,7 +745,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# What should I do if I find two players with\n");
 			out.write("# the same IP? (Normally one of them is a bot then)\n");
 			out.write("# Accepted are kick/ban/none.\n");
-			out.write("punishment: "+punish+"\n\n");
+			out.write("punishment: "+punish+"\n\n\n");
+			
 			
 			out.write("# Should Rei's Minimap be supported? Separate tags with ';'\n");
 			out.write("# false: Disables. If used in combination with other tags, the minimap still won't be supported.\n");
@@ -675,7 +762,7 @@ public class PMan_main extends JavaPlugin {
 			
 			
 			out.write("# DO NOT CHANGE THIS!\n");
-			out.write("version: 2\n\n");
+			out.write("version: "+ configVersion +"\n\n");
 			
 			out.close();
 			
@@ -683,7 +770,6 @@ public class PMan_main extends JavaPlugin {
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
-		VAR.log.info(VAR.logHeader + "Config.yml updatet to version "+VAR.config.getInt("version"));
 	}
 	public static int abs(int a){
 		if (a < 0)

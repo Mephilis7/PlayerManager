@@ -71,7 +71,6 @@ public class PMan_IPLogger
 			VAR.pLog.set(path+".lastLogin", "["+getDate()+"]");
 			
 			
-			if (VAR.config.getBoolean("LogIP")){
 				if (!VAR.pLog.isSet(path+".IP Address")){
 					VAR.pLog.set(path+".IP Address", null);
 					VAR.pLog.save(VAR.f_player);
@@ -102,7 +101,7 @@ public class PMan_IPLogger
 					String[] st = {playerip[0]};
 					VAR.pLog.set(path+".IP Address", Arrays.asList(st));	
 				}
-			}
+				
 			VAR.pLog.save(VAR.f_player);
 			
 			//resetting the values, as defined in the config file
@@ -198,6 +197,7 @@ public class PMan_IPLogger
 	}
 	@EventHandler
 	public void onPlayerChat(PlayerChatEvent event){
+		//Check whether the player has been muted.
 		Boolean muted = null;
 		try {
 			loadPlayerLog();
@@ -213,7 +213,8 @@ public class PMan_IPLogger
 			event.setCancelled(true);
 		}
 	}
-	private void loadPlayerLog() throws Exception{
+	
+	public void loadPlayerLog() throws Exception{
 		if (!VAR.f_player.exists()){
 			VAR.f_player.createNewFile();
 			VAR.log.info(VAR.logHeader + "Creating PlayerLog file.");
@@ -223,6 +224,7 @@ public class PMan_IPLogger
 		VAR.pLog.addDefault("players", null);
 		VAR.pLog.save(VAR.f_player);
 	}
+	
 	public static String getDate(){
 	    Calendar c = Calendar.getInstance();
 	    int month = c.get(2) + 1;
@@ -235,6 +237,8 @@ public class PMan_IPLogger
 	    date = date + c.get(13);
 	    return date;
 	}
+	
+	//Replace the variables in the string
 	public String replace(String str, Player player){
 		str = str.replace("%NAME", player.getName());
 		str = str.replace("%IP", player.getAddress().toString());
@@ -242,12 +246,13 @@ public class PMan_IPLogger
 		str = str.replace("%GAMEMODE", player.getGameMode().toString());
 		str = str.replace("%ONLINEPLAYERS", Integer.toString(Bukkit.getServer().getOnlinePlayers().length));
 		str = str.replace("%MAXPLAYERS", Integer.toString(Bukkit.getServer().getMaxPlayers()));
-		str = str.replace("%SERVERNAME", Bukkit.getServer().getName());
 		String s = "";
 		for (Player p: Bukkit.getServer().getOnlinePlayers()){
 			s = s + p.getDisplayName()+ ", ";
 		}
 		str = str.replace("%ONLINELIST", s);
+		str = str.replace("%SERVERNAME", Bukkit.getServer().getName());
+		//Code below is taken from MCDocs
 		String[] Colours = { "&0", "&1", "&2", "&3", "&4", "&5", "&6", "&7", 
 			      "&8", "&9", "&a", "&b", "&c", "&d", "&e", "&f"};
 		ChatColor[] cCode = { ChatColor.BLACK, ChatColor.DARK_BLUE, ChatColor.DARK_GREEN, ChatColor.DARK_AQUA, ChatColor.DARK_RED, ChatColor.DARK_PURPLE, ChatColor.GOLD, ChatColor.GRAY, 
@@ -258,6 +263,8 @@ public class PMan_IPLogger
 		}
 		return str;
 	}
+	
+	//Support for Rei's minimap
 	public String minimap(String str){
 		str = str.toLowerCase();
 		String result = (ChatColor.BLACK.toString()+ChatColor.BLACK.toString());
