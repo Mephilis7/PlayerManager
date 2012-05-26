@@ -2,12 +2,18 @@ package com.github.Mephilis7.PlayerManager;
 
 import java.io.File;
 import java.util.logging.Logger;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class VAR
 {
 	//one class with the most important variables
+	public static Permission permission = null;
+	public static Economy economy = null;
 	public static Logger log = Logger.getLogger("Minecraft");
 	
 	public static String logHeader = "[PlayerManager] ";

@@ -1,7 +1,8 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.5
+version: 1.6
 author: Mephilis7
+softdepend: [Vault]
 commands:
   rules:
     description: Prints the rules.
@@ -38,6 +39,12 @@ permissions:
     default: op
   pman.info.world:
     description: Allows showing World on /pman info
+    default: op
+  pman.info.money:
+    description: Allows showing Money on /pman info
+    default: op
+  pman.info.group:
+    description: Allows showing Groups on /pman info
     default: op
   pman.info.health:
     description: Allows showing Health on /pman info
@@ -101,4 +108,7 @@ permissions:
     default: op
   pman.reload:
     description: Allows usage of /pman reload
+    default: op
+  pman.update:
+    description: Notifies when joining the server and an update is out.
     default: op

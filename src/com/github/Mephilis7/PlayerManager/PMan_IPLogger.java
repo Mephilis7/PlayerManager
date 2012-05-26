@@ -1,9 +1,13 @@
 package com.github.Mephilis7.PlayerManager;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -135,6 +139,9 @@ public class PMan_IPLogger
 			ex.printStackTrace();
 		} catch (Exception ex){
 			ex.printStackTrace();
+		}
+		if (event.getPlayer().hasPermission("pman.update") || event.getPlayer().isOp()){
+			checkVersion(event.getPlayer());
 		}
 		//BotBlocker
 		if (VAR.config.getBoolean("enableBotBlock")){
@@ -284,6 +291,39 @@ public class PMan_IPLogger
 			result = result + ChatColor.GRAY.toString();
 		result = result + ChatColor.YELLOW.toString() + ChatColor.WHITE.toString();
 		return result;
+	}
+	//Check whether the plugin is upToDate.
+	public void checkVersion(Player p){
+		try{
+			URL url = new URL("http://dev.bukkit.org/server-mods/playermanager/files");
+			URLConnection yc = url.openConnection();
+			BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
+			String inputLine = "";
+			
+			while ((inputLine = in.readLine()) != null){
+				if (inputLine.contains("col-file\"")){
+					String version = inputLine.split("PlayerManager ")[1].split("<")[0];
+					String thisVersion = 
+							Bukkit.getServer().getPluginManager().getPlugin("PlayerManager").getDescription().getVersion();
+					if (!version.equalsIgnoreCase("v"+thisVersion)){
+						VAR.log.info("");
+						VAR.log.info("------------- Found an update for PlayerManager -------------");
+						VAR.log.info("Please go to http://dev.bukkit.org/server-mods/playermanager/");
+						VAR.log.info("and download "+version+". You are running v"+thisVersion+".");
+						VAR.log.info("-------------------------------------------------------------");
+						VAR.log.info("");
+						p.sendMessage(ChatColor.GRAY+"An update for "+ChatColor.GOLD+"PlayerManager"+ChatColor.GRAY+" is out! Please visit");
+						p.sendMessage(ChatColor.AQUA+"http://dev.bukkit.org/server-mods/playermanager/");
+						return;
+					}
+					break;
+				}
+			}
+			VAR.log.info("PlayerManager is UpToDate (v"+Bukkit.getServer().getPluginManager().getPlugin("PlayerManager").getDescription().getVersion()+").");
+			
+		} catch (IOException ex){
+			VAR.log.info(VAR.logHeader+"Error while looking for updates.");
+		}
 	}
 }
 

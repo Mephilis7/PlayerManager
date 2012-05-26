@@ -12,6 +12,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
@@ -43,6 +44,33 @@ implements Listener{
 			if (!VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("true")){
 				if (VAR.config.getString("PreventNotAccepted").toLowerCase().contains("pickupdrops")){
 					event.setCancelled(true);
+				}
+			}
+		}
+	}
+	@EventHandler
+	public void onPlayerBlockInteract(PlayerInteractEvent event){
+		if (VAR.config.getBoolean("enableRules")){
+			Boolean accepted = false;
+			if (VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("true"))
+				accepted = true;
+			if (!accepted){
+				String msg = VAR.config.getString("RulesNotAcceptedMsg");
+				msg = ip.replace(msg, event.getPlayer());
+				if (VAR.config.getString("PreventNotAccepted").toLowerCase().contains("chest")){
+					if (event.getClickedBlock().getTypeId() == 54){
+						event.getPlayer().sendMessage(msg);
+						event.setCancelled(true);
+						return;
+					}
+				}
+				if (VAR.config.getString("PreventNotAccepted").toLowerCase().contains("redstone")){
+					int ID = event.getClickedBlock().getTypeId();
+					if (ID == 69 || ID == 70 || ID == 72 || ID == 77){
+						event.getPlayer().sendMessage(msg);
+						event.setCancelled(true);
+						return;
+					}
 				}
 			}
 		}
@@ -194,6 +222,27 @@ implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerCommand(PlayerCommandPreprocessEvent event){
 		if (VAR.config.getBoolean("enableRules")){
+			if (!VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("true")){
+				String wl = VAR.config.getList("RulesWhiteList").toString();
+				wl = wl.replace("[", "");
+				wl = wl.replace("]", "");
+				wl = wl.replace(" ", "");
+				String[] list = wl.split(",");
+				int i = 0;
+				boolean onList = false;
+				while (i < list.length){
+					if (event.getMessage().startsWith("/"+list[i]))
+						onList = true;
+					i++;
+				}
+				if (!onList){
+					String msg = VAR.config.getString("RulesNotAcceptedWLMsg");
+					msg = ip.replace(msg, event.getPlayer());
+					event.getPlayer().sendMessage(msg);
+					event.setCancelled(true);
+					return;
+				}
+			}
 			if (event.getMessage().trim().equalsIgnoreCase("/rules")){
 				if (VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("false")){
 					try{

@@ -79,21 +79,31 @@ Rules4: '&1[3] &aHave fun :D'
 # BlockBreak: Prevent them from breaking blocks.
 # BlockPlace: Prevent them from placing blocks.
 # Chat: Prevent them from chatting.
+# Chest: Prevent them from opening chests.
 # DamageSelf: Prevent them from being hurt by mobs or other players.
 # DamageOthers: Prevent them from hurting any other player or mob.
 # Move[]: Keep them in a defined radius from the spawn point.
 # PickUpDrops: Don't let them pick up any items.
-# Example: Move[10];DamageOthers;PickUpDrops;BlockBreak
-PreventNotAccepted: 'Move[10];DamageOthers;PickUpDrops;BlockBreak'
+# Redstone: Prevent them from using levers, buttons or pressure plates.
+# Example: Move[10];DamageOthers;PickUpDrops;BlockBreak;BlockPlace
+PreventNotAccepted: 'Move[10];DamageOthers;PickUpDrops;BlockBreak;BlockPlace'
+# This is a command whitelist. Only the commands specified here will be allowed to players who haven't accepted the rules.
+RulesWhiteList:
+    - rules
+    - acceptrules
+    - login
+    - register
 # This is the message your players will be shown if they try to do anything you've specified above, except picking up drops.
 RulesNotAcceptedMsg: '&cYou are not allowed to do this until you accepted the server rules! Type &2/acceptrules&c!'
 # This is the message a player will be shown when he tries to damage a player who has not accepted the rules yet.
 # This only has an effect if you included DamageSelf above.
 RulesNotAcceptedDmgSelfMsg: '&eThis player has not accepted the rules yet. Let him live until then ;)'
+# This is the message a player will be shown if he tries to execute a command that's not on the whitelist.
+RulesNotAcceptedWLMsg: '&eYou are not allowed to execute this command until you accepted the rules.'
 
 # Enable teleporting when typing /acceptrules for the first time?
 RulesTeleport: false
-# The position they will be teleported to. Better do this in-game by typing /pman srtp.
+# The position they will be teleported to. Change this in-game by typing /pman srtp.
 RulesTpWorld: world
 RulesTpX: 0.0
 RulesTpY: 64.0
@@ -126,4 +136,4 @@ supportReiMinimap: false
 
 
 # DO NOT CHANGE THIS!
-version: 3
+version: 4

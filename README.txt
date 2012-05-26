@@ -1,4 +1,4 @@
-PlayerManager v1.5 by Mephilis7
+PlayerManager v1.6 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R2.0
@@ -14,6 +14,8 @@ Features:
     - World
     - last Login
     - last Logout
+    - Money [Vault required]
+    - Groups [Vault required]
     - Health
     - Food
     - Exp level
@@ -25,6 +27,7 @@ Features:
     - Whether he is muted
 - Allows forcing people to read the rules, by typing /rules and then /acceptrules.
     - Configurable prevention of actions, if the /rules have not been accepted yet.
+    - Command whitelist.
     - Also supports other plugins that already include the /rules command!
 - Set various properties per player by typing /pman set!
 - Show/Hide your players!
@@ -72,6 +75,8 @@ pman.info.ip - Permission to be shown the IP address on /pman info
 pman.info.lastLogin - Permission to be shown the date and time of the last login
 pman.info.lastLogout - Permission to be shown the date and time of the last logout
 pman.info.world - Permission to be shown the world on /pman info
+pman.info.money - Permission to be shown the money on /pman info
+pman.info.group - Permission to be shown the groups on /pman info
 pman.info.health - Permission to be shown health on /pman info
 pman.info.food - Permission to be shown food level on /pman info
 pman.info.xp - Permission to be shown Exp Level on /pman info
@@ -93,21 +98,28 @@ pman.set.health - Permission to set health of a player
 pman.set.name - Permission to set name of a player
 pman.set.xp - Permission to set xp level of a player
 pman.reload - Permission to use /pman reload
+pman.update - Permission to be notified when an update is available
 
 
 Planned Features:
 -----------------
 
-- Hooking into Vault to display group and money
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
 - /report a player, and, for admins, /check how many times he has been reported because of what.
-- Configurable polls, you players could then /vote whithin a defined amount of time for an option.
+- Configurable polls, you players could then /vote within a defined amount of time for an option.
 - improve the BotBlocker (one IP bound to one name and vice versa)
-- Auto-Check for updates.
 
 
 Changelog:
 ----------
+v1.6
+- UpdateChecker notifies you when an update is available
+- Optional depency on Vault to display group/money when typing /pman info
+- Added chests and redstone to the prevention of actions if the player hasn't accepted the rules yet
+- You can't set strange values as the food/health level anymore. (i.e. 230719)
+- Players will now be notified when their food/health/EXP level, permission to fly or nickname changes
+- Config.yml update to version 4
+- BugFixes
 
 v1.5
 - Got the support for other plugins using /rules working

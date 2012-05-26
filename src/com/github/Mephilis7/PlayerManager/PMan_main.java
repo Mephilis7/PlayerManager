@@ -1,12 +1,19 @@
 package com.github.Mephilis7.PlayerManager;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 
 import com.github.Mephilis7.PlayerManager.VAR;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,6 +22,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PMan_main extends JavaPlugin {
@@ -29,7 +37,7 @@ public class PMan_main extends JavaPlugin {
 	ChatColor aqua = ChatColor.AQUA;
 	ChatColor white = ChatColor.WHITE;
 	
-	int configVersion = 3;
+	int configVersion = 4;
 	
 	
 	public void onDisable() {
@@ -38,6 +46,7 @@ public class PMan_main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		checkVersion();
 		checkConfig();
 		try {
 			VAR.config.load(VAR.f_config);
@@ -69,6 +78,8 @@ public class PMan_main extends JavaPlugin {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
 		Player playerShowInfo = null;
 		online = false;
+		setupEconomy();
+		setupPermissions();
 		
 		if ((cmd.getName().equalsIgnoreCase("pman"))){
 			//help page
@@ -187,6 +198,14 @@ public class PMan_main extends JavaPlugin {
 									if (sender.hasPermission("pman.info.world") || sender.isOp()){
 										if (Order[i].equalsIgnoreCase("World"))
 											sender.sendMessage(darkgreen + "World: " + aqua + playerShowInfo.getWorld().getName());
+									}
+									if (sender.hasPermission("pman.info.money") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Money") && VAR.economy != null)
+											sender.sendMessage(darkgreen + "Money: "+ aqua + VAR.economy.getBalance(playerShowInfo.getName()) + VAR.economy.currencyNamePlural());
+									}
+									if (sender.hasPermission("pman.info.group") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("Group") && VAR.permission != null)
+											sender.sendMessage(darkgreen + "Group: "+ aqua + VAR.permission.getPrimaryGroup(playerShowInfo));
 									}
 									if (sender.hasPermission("pman.info.health") || sender.isOp()){
 										if (Order[i].equalsIgnoreCase("Health"))
@@ -381,6 +400,7 @@ public class PMan_main extends JavaPlugin {
 						if (args.length == 1){
 							sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 							sender.sendMessage(ChatColor.BLUE + "Type /pman for help.");
+							return true;
 						}
 						//set AllowFlight
 						if (args[1].equalsIgnoreCase("fly")){
@@ -392,6 +412,7 @@ public class PMan_main extends JavaPlugin {
 										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
 									} else if (args[3].equalsIgnoreCase("true") || args[3].equalsIgnoreCase("allow")){
 											getServer().getPlayer(args[2]).setAllowFlight(true);
+											getServer().getPlayer(args[2]).sendMessage(ChatColor.YELLOW+"You are now allowed to fly.");
 											sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now allowed to fly.");
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has allowed " +args[2]+ " to fly!");
@@ -404,6 +425,7 @@ public class PMan_main extends JavaPlugin {
 											}
 											} else if (args[3].equalsIgnoreCase("false") || args[3].equalsIgnoreCase("deny")){
 												getServer().getPlayer(args[2]).setAllowFlight(false);
+												getServer().getPlayer(args[2]).sendMessage(ChatColor.YELLOW+"You are not allowed to fly anymore.");
 												sender.sendMessage(VAR.Header + darkgreen + args[2] + " is now disallowed to fly.");
 												if (VAR.logit)
 													VAR.log.info(VAR.logHeader + sender.getName() + " has disallowed " +args[2]+ " to fly!");
@@ -433,10 +455,17 @@ public class PMan_main extends JavaPlugin {
 											getServer().getPlayer(args[2]).setHealth(20);
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has filled up the health of " +args[2]);
-										} else { getServer().getPlayer(args[2]).setHealth(Integer.parseInt(args[3]));
-										if (VAR.logit)
-											VAR.log.info(VAR.logHeader + sender.getName() + " has set the health of " +args[2]+ " to " +args[3]);
+										} else {
+											int i = Integer.parseInt(args[3]);
+											if (i < 0)
+												i = 0;
+											if (i > 20)
+												i = 20;
+											getServer().getPlayer(args[2]).setHealth(i);
+											if (VAR.logit)
+												VAR.log.info(VAR.logHeader + sender.getName() + " has set the health of " +args[2]+ " to " +args[3]);
 										}
+										getServer().getPlayer(args[2]).sendMessage(ChatColor.YELLOW+"You have been healed.");
 									}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
 								 sender.sendMessage(ChatColor.BLUE + "/pman set health <player> <amount>");
@@ -461,10 +490,16 @@ public class PMan_main extends JavaPlugin {
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has emptied the food bar of "+args[2]);
 										} else {
-											getServer().getPlayer(args[2]).setFoodLevel(Integer.parseInt(args[3]));
+											int i = Integer.parseInt(args[3]);
+											if (i < 0)
+												i = 0;
+											if (i > 20)
+												i = 20;
+											getServer().getPlayer(args[2]).setFoodLevel(i);
 											if (VAR.logit)
 												VAR.log.info(VAR.logHeader + sender.getName() + " has set the food level of "+args[2]+" to "+args[3]);
 										}
+										getServer().getPlayer(args[2]).sendMessage(ChatColor.YELLOW+"Your food level has been changed.");
 										sender.sendMessage(VAR.Header + darkgreen + "The player's food level has been set.");
 									}
 								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
@@ -482,6 +517,7 @@ public class PMan_main extends JavaPlugin {
 										sender.sendMessage(VAR.Header+ChatColor.RED+"Could not find specified player.");
 									} else { getServer().getPlayer(args[2]).setLevel(Integer.valueOf(args[3]));
 									sender.sendMessage(VAR.Header + darkgreen + "The player's EXP level has been set.");
+									getServer().getPlayer(args[2]).sendMessage(ChatColor.YELLOW+"Your EXP level has been changed.");
 									if (VAR.logit)
 										VAR.log.info(VAR.logHeader + sender.getName() + " has set the EXP level of "+args[2]+" to "+args[3]);
 									}
@@ -515,11 +551,13 @@ public class PMan_main extends JavaPlugin {
 										}
 										return true;
 									}
-									getServer().getPlayer(args[2]).setDisplayName(args[3]);
-									getServer().getPlayer(args[2]).setPlayerListName(args[3]);
+									getServer().getPlayer(args[2]).setDisplayName("~"+args[3]);
+									getServer().getPlayer(args[2]).setPlayerListName("~"+args[3]);
+									if (getServer().getPlayer(args[2]).isOnline())
+										getServer().getPlayer(args[2]).sendMessage(ChatColor.YELLOW+"Your nickname has been set to ~"+args[3]);
 									sender.sendMessage(VAR.Header + darkgreen + "The player's name has been set.");
 									if (VAR.logit)
-										VAR.log.info(VAR.logHeader + sender.getName() + " has set the in-game name of "+args[2]+" to "+args[3]);
+										VAR.log.info(VAR.logHeader + sender.getName() + " has set the in-game name of "+args[2]+" to ~"+args[3]);
 									try {
 										loadPlayerLog();
 										VAR.pLog.set("players."+args[2]+".Displayed Name", args[3]);
@@ -614,9 +652,20 @@ public class PMan_main extends JavaPlugin {
 			}
 		}
 		String[] outRules = rRules.split("--newLine--");
-		String PreventRNA = VAR.config.getString("PreventNotAccepted", "Move[10];DamageOthers;PickUpDrops;BlockBreak");
+		String PreventRNA = VAR.config.getString("PreventNotAccepted", "Move[10];DamageOthers;PickUpDrops;BlockBreak;BlockPlace");
+		String rwl = "";
+		if (VAR.config.isSet("RulesWhiteList")){
+			rwl = VAR.config.getList("RulesWhiteList").toString();
+			rwl = rwl.replace("[", "");
+			rwl = rwl.replace("]", "");
+			rwl = rwl.replace(" ", "");
+			if (rwl.equalsIgnoreCase(""))
+				rwl = "rules,acceptrules,login,register";
+		} else rwl = "rules,acceptrules,login,register";
+		String[] RWL = rwl.split(",");
 		String RNAMsg = VAR.config.getString("RulesNotAcceptedMsg", "&cYou are not allowed to do this until you accepted the server rules! Type &2/acceptrules&c!");
 		String RNADSMsg = VAR.config.getString("RulesNotAcceptedDmgSelfMsg", "&eThis player has not accepted the rules yet. Let him live until then ;)");
+		String RNAWLMsg = VAR.config.getString("RulesNotAcceptedWLMsg", "&eYou are not allowed to execute this command until you accepted the rules.");
 		Boolean RulesTp = VAR.config.getBoolean("RulesTeleport", false);
 		String RTPW = VAR.config.getString("RulesTpWorld", "world");
 		double RTPX = VAR.config.getDouble("RulesTpX", 0.0);
@@ -643,6 +692,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# &strike - Striked   &under - Underline &magic - Magic       &reset - Reset\n");
 			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS\n");
 			out.write("# %ONLINELIST  - %SERVERNAME\n\n\n\n");
+			
 			
 			
 			out.write("# Enable the plugin?\n");
@@ -677,6 +727,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# IP: The player's IP address\n");
 			out.write("# LastLogin: The date and time the player has joined the last time.\n");
 			out.write("# LastLogout: The date and time the player has left the last time.\n");
+			out.write("# Money: The amount of money a player has. Vault is REQUIRED.\n");
+			out.write("# Group: The primary group the player is in. Vault is REQUIRED.\n");
 			out.write("# World: The world the player is in\n");
 			out.write("# Health: The player's health\n");
 			out.write("# Food: The player's food level\n");
@@ -715,21 +767,32 @@ public class PMan_main extends JavaPlugin {
 			out.write("# BlockBreak: Prevent them from breaking blocks.\n");
 			out.write("# BlockPlace: Prevent them from placing blocks.\n");
 			out.write("# Chat: Prevent them from chatting.\n");
+			out.write("# Chest: Prevent them from opening chests.\n");
 			out.write("# DamageSelf: Prevent them from being hurt by mobs or other players.\n");
 			out.write("# DamageOthers: Prevent them from hurting any other player or mob.\n");
 			out.write("# Move[]: Keep them in a defined radius from the spawn point.\n");
 			out.write("# PickUpDrops: Don't let them pick up any items.\n");
-			out.write("# Example: Move[10];DamageOthers;PickUpDrops;BlockBreak\n");
+			out.write("# Redstone: Prevent them from using levers, buttons or pressure plates.\n");
+			out.write("# Example: Move[10];DamageOthers;PickUpDrops;BlockBreak;BlockPlace\n");
 			out.write("PreventNotAccepted: '"+PreventRNA+"'\n");
+			out.write("# This is a command whitelist. Only the commands specified here will be allowed to players who haven't accepted the rules.\n");
+			out.write("RulesWhiteList:\n");
+			i = 0;
+			while (i < RWL.length){
+				out.write("    - "+RWL[i]+"\n");
+				i++;
+			}
 			out.write("# This is the message your players will be shown if they try to do anything you've specified above, except picking up drops.\n");
 			out.write("RulesNotAcceptedMsg: '"+RNAMsg+"'\n");
 			out.write("# This is the message a player will be shown when he tries to damage a player who has not accepted the rules yet.\n");
 			out.write("# This only has an effect if you included DamageSelf above.\n");
-			out.write("RulesNotAcceptedDmgSelfMsg: '"+RNADSMsg+"'\n\n");
+			out.write("RulesNotAcceptedDmgSelfMsg: '"+RNADSMsg+"'\n");
+			out.write("# This is the message a player will be shown if he tries to execute a command that's not on the whitelist.\n");
+			out.write("RulesNotAcceptedWLMsg: '"+RNAWLMsg+"'\n\n");
 			
 			out.write("# Enable teleporting when typing /acceptrules for the first time?\n");
 			out.write("RulesTeleport: "+RulesTp+"\n");
-			out.write("# The position they will be teleported to. Better do this in-game by typing /pman srtp.\n");
+			out.write("# The position they will be teleported to. Change this in-game by typing /pman srtp.\n");
 			out.write("RulesTpWorld: "+RTPW+"\n");
 			out.write("RulesTpX: "+RTPX+"\n");
 			out.write("RulesTpY: "+RTPY+"\n");
@@ -793,5 +856,56 @@ public class PMan_main extends JavaPlugin {
 		VAR.pLog.addDefault("players", null);
 		VAR.pLog.save(VAR.f_player);
 	}
+	public void checkVersion(){
+		getServer().getScheduler().scheduleAsyncDelayedTask(this, new Runnable(){
+		public void run() {
+			try{
+				URL url = new URL("http://dev.bukkit.org/server-mods/playermanager/files");
+				URLConnection yc = url.openConnection();
+				BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
+				String inputLine = "";
+			
+				while ((inputLine = in.readLine()) != null){
+					if (inputLine.contains("col-file\"")){
+						String version = inputLine.split("PlayerManager ")[1].split("<")[0];
+						String thisVersion = 
+								Bukkit.getServer().getPluginManager().getPlugin("PlayerManager").getDescription().getVersion();
+						if (!version.equalsIgnoreCase("v"+thisVersion)){
+							VAR.log.info("");
+							VAR.log.info("------------- Found an update for PlayerManager -------------");
+							VAR.log.info("Please go to http://dev.bukkit.org/server-mods/playermanager/");
+							VAR.log.info("and download "+version+". You are running v"+thisVersion+".");
+							VAR.log.info("-------------------------------------------------------------");
+							VAR.log.info("");
+							return;
+						}
+						break;
+					}
+				}
+				VAR.log.info("PlayerManager is UpToDate (v"+Bukkit.getServer().getPluginManager().getPlugin("PlayerManager").getDescription().getVersion()+").");
+			
+			} catch (IOException ex){
+				VAR.log.info(VAR.logHeader+"Error while looking for updates.");
+			}
+			}
+		}, 15L);
+	}
+	private boolean setupPermissions()
+    {
+        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if (permissionProvider != null) {
+            VAR.permission = permissionProvider.getProvider();
+        }
+        return (VAR.permission != null);
+    }
+	private boolean setupEconomy()
+    {
+        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyProvider != null) {
+            VAR.economy = economyProvider.getProvider();
+        }
+
+        return (VAR.economy != null);
+    }
 }
 
