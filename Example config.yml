@@ -135,7 +135,8 @@ ReportCoolDownMsg: '&6This command is not ready yet!'
 # Should BotBlocking be enabled?
 # Not recommended. It's old and buggy code, I will do that better soon,
 # depending on the result of the poll I created on the page where you downloaded my plugin.
-#######  http://dev.bukkit.org/server-mods/playermanager  #######enableBotBlock: false
+#######  http://dev.bukkit.org/server-mods/playermanager  #######
+enableBotBlock: false
 # Should two players with the same IP be logged in a separated file?
 logDuplicatedIps: false
 # What should I do if I find two players with

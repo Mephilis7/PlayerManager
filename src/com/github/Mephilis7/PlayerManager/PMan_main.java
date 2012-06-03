@@ -860,7 +860,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Should BotBlocking be enabled?\n");
 			out.write("# Not recommended. It's old and buggy code, I will do that better soon,\n");
 			out.write("# depending on the result of the poll I created on the page where you downloaded my plugin.\n");
-			out.write("#######  http://dev.bukkit.org/server-mods/playermanager  #######");
+			out.write("#######  http://dev.bukkit.org/server-mods/playermanager  #######\n");
 			out.write("enableBotBlock: "+bBlock+"\n");
 			out.write("# Should two players with the same IP be logged in a separated file?\n");
 			out.write("logDuplicatedIps: "+logDouble+"\n");
