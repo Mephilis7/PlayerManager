@@ -51,10 +51,7 @@ implements Listener{
 	@EventHandler
 	public void onPlayerBlockInteract(PlayerInteractEvent event){
 		if (VAR.config.getBoolean("enableRules")){
-			Boolean accepted = false;
-			if (VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("true"))
-				accepted = true;
-			if (!accepted){
+			if (!VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("true")){
 				String msg = VAR.config.getString("RulesNotAcceptedMsg");
 				msg = ip.replace(msg, event.getPlayer());
 				if (VAR.config.getString("PreventNotAccepted").toLowerCase().contains("chest")){

@@ -1,9 +1,25 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.6
+version: 1.7
 author: Mephilis7
 softdepend: [Vault]
 commands:
+  report:
+    description: Report a player to the Admins.
+    usage: <command> {player}
+    permission: pman.report
+  check:
+    description: Check the current /report state of a player.
+    usage: <command> {player} <Number>
+    permission: pman.check
+  checktp:
+    description: Teleport to the location where a report has been sent.
+    usage: <command> {player} {Number}
+    permission: pman.checktp
+  apologise:
+    description: Delete a report of a player.
+    usage: <command> {player} {Number}
+    permission: pman.apologise
   rules:
     description: Prints the rules.
     usage: <command>
@@ -105,6 +121,18 @@ permissions:
     default: op
   pman.set.xp:
     description: Allows setting of xp level
+    default: op
+  pman.report:
+    description: Allows usage of /report
+    default: true
+  pman.check: 
+    description: Check the /report state of a player.
+    default: op
+  pman.checktp:
+    description: Teleport to a location where /report had been typed.
+    default: op
+  pman.apologise:
+    description: Allows usage of /apologise
     default: op
   pman.reload:
     description: Allows usage of /pman reload

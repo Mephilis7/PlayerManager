@@ -1,4 +1,4 @@
-PlayerManager v1.6 by Mephilis7
+PlayerManager v1.7 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R2.0
@@ -25,10 +25,17 @@ Features:
     - Whether flying is allowed or not.
     - Whether he is hidden
     - Whether he is muted
+    - Whether he has accepted the /rules
 - Allows forcing people to read the rules, by typing /rules and then /acceptrules.
     - Configurable prevention of actions, if the /rules have not been accepted yet.
     - Command whitelist.
     - Also supports other plugins that already include the /rules command!
+- Allows your players to /report other people, i.e. if they see somebody griefing a house...
+    - The reported player's name, location and distance to the command sender will be saved in the PlayerLog.yml
+    - Your players will have to write a reason aswell.
+    - Allows people with the right permission to use /check to see how many times a player had been reported... and why.
+    - Allows teleporting to the location where the reported player was by typing /checktp
+    - When somebody reports a player, all Ops/people with the permission "pman.check" will be notified.
 - Set various properties per player by typing /pman set!
 - Show/Hide your players!
 - Mute spammers!
@@ -54,11 +61,15 @@ Commands:
 /pman reload - Reloads the config.yml
 /rules - View the rules, as customized in config.yml
 /acceptrules- Accept the server rules
+/report <player> <reason> - Reports a player to the Admins
+/check <player> [ReportNumber] - Look up information about a player concerning the /report command
+/checktp <player> <ReportNumber> - Teleport to the location where the reported player had been when he was reported
 
 
 /pman set Properties:
 --------------------
 fly - Set AllowFlight per player
+fire - Set a player on fire
 food - Set player's food level
 health - Set player's health
 name - Set player's name
@@ -93,10 +104,14 @@ pman.rules - Permission to use /rules and /acceptrules
 pman.rulestp - Permission to use /pman srtp
 pman.set - Permission to use /pman set
 pman.set.fly - Permission to set AllowFlight per player
+pman.set.fire - Permission to set fire to a player
 pman.set.food - Permission to set food level of a player
 pman.set.health - Permission to set health of a player
 pman.set.name - Permission to set name of a player
 pman.set.xp - Permission to set xp level of a player
+pman.report - Permission to /report a player
+pman.check - Permission to /check the /report state of a player
+pman.checktp - Permission to use /checktp
 pman.reload - Permission to use /pman reload
 pman.update - Permission to be notified when an update is available
 
@@ -105,13 +120,22 @@ Planned Features:
 -----------------
 
 - Server maintenance command: keeps server online, but kicks every player without a special permission.
-- /report a player, and, for admins, /check how many times he has been reported because of what.
 - Configurable polls, you players could then /vote within a defined amount of time for an option.
 - improve the BotBlocker (one IP bound to one name and vice versa)
+==> See http://dev.bukkit.org/server-mods/playermanager 
 
 
 Changelog:
 ----------
+v1.7
+- Added /report, /check, /checktp and /apologise
+- Config.yml update to version 5
+- Cleaned up the code a bit:
+	- Fixed two annoying bugs concerning the show/hide command. How could I miss them?
+	- Fixed some logging messages.
+	- Partial name recognition fixed.
+	- Other small fixes
+
 v1.6
 - UpdateChecker notifies you when an update is available
 - Optional depency on Vault to display group/money when typing /pman info

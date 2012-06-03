@@ -16,12 +16,11 @@ public class PMan_CmdRules implements CommandExecutor{
 	public PMan_CmdRules(PMan_main plugin){
 		this.plugin = plugin;
 	}
-	boolean console = false;
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
 		if (sender.getName().equalsIgnoreCase("console"))
-			console = true;
+			VAR.console = true;
 		//Shows the rules
 		if (cmd.getName().equalsIgnoreCase("rules")){
 			if (sender.hasPermission("pman.rules")){
@@ -35,7 +34,7 @@ public class PMan_CmdRules implements CommandExecutor{
 					i++;
 				}
 				//Set the player's rules state from "has not read" to "has read, may accept the rules"
-				if (!console){
+				if (!VAR.console){
 					if (VAR.pLog.getString("players."+sender.getName()+".Has accepted rules").equalsIgnoreCase("false")){
 						try{
 							VAR.pLog.set("players."+sender.getName()+".Has accepted rules", "hasTyped");
@@ -51,7 +50,7 @@ public class PMan_CmdRules implements CommandExecutor{
 		//Command to accept the server rules
 		if (cmd.getName().equalsIgnoreCase("acceptrules")){
 			if (sender.hasPermission("pman.rules")){
-				if (!console){
+				if (!VAR.console){
 					//If the player has not read the rules yet.
 					if (VAR.pLog.getString("players."+sender.getName()+".Has accepted rules").equalsIgnoreCase("false")){
 						sender.sendMessage(ChatColor.RED + "You have to read the rules first!! Please type /rules.");
@@ -98,7 +97,7 @@ public class PMan_CmdRules implements CommandExecutor{
 	
 	public String replace(String str, CommandSender sender){			
 		str = str.replace("%NAME", sender.getName());
-		if (!console){
+		if (!VAR.console){
 			str = str.replace("%IP", Bukkit.getServer().getPlayer(sender.getName()).getAddress().toString());
 			str = str.replace("%WORLD", Bukkit.getServer().getPlayer(sender.getName()).getWorld().getName());
 			str = str.replace("%GAMEMODE", Bukkit.getServer().getPlayer(sender.getName()).getGameMode().toString());

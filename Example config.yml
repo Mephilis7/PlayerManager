@@ -17,7 +17,7 @@ enable: true
 logToConsole: false
 # Do you want player modifications (name,allowFly,...) to be reset
 # when the player logs out and back in? Separate with ';'
-# All modifications not specified here will be re-enabled.
+# All modifications not specified here will be re-enabled, depending on the information in the PlayerLog.yml file.
 # Fly: Reset allowing/denying to fly.
 # Name: Reset the player's name.
 # Hidden: Show the player again.
@@ -43,6 +43,8 @@ mutedMsg: '&cYou have been muted.'
 # IP: The player's IP address
 # LastLogin: The date and time the player has joined the last time.
 # LastLogout: The date and time the player has left the last time.
+# Money: The amount of money a player has. Vault is REQUIRED.
+# Group: The primary group the player is in. Vault is REQUIRED.
 # World: The world the player is in
 # Health: The player's health
 # Food: The player's food level
@@ -112,8 +114,28 @@ RulesTpPitch: 0.0
 RulesTpYaw: 0.0
 
 
+# Enable the /report and /check commands?
+EnableReport: true
+# After how many /reports do you want the player to be kicked? -1 disables.
+ReportKick: 5
+# The message a kicked player will be shown. Do not use any variables.
+ReportKickMsg: 'You have been reported too often. You should behave better.'
+# After how many /reports do you want the player to be banned? -1 disables.
+ReportBan: 7
+# The message a banned player will be shown. Do not use any variables.
+ReportBanMsg: 'Too many reports. You have been warned.'
+# What banning method should be used? This should be either name, ip or both.
+ReportBanMethod: ip
+# The cooldown in seconds for the /report command. -1 disables.
+ReportCoolDown: 30
+# The message a player will be shown when he tries to use the command but the cooldown has not finished yet.
+ReportCoolDownMsg: '&6This command is not ready yet!'
+
+
 # Should BotBlocking be enabled?
-enableBotBlock: false
+# Not recommended. It's old and buggy code, I will do that better soon,
+# depending on the result of the poll I created on the page where you downloaded my plugin.
+#######  http://dev.bukkit.org/server-mods/playermanager  #######enableBotBlock: false
 # Should two players with the same IP be logged in a separated file?
 logDuplicatedIps: false
 # What should I do if I find two players with
@@ -136,4 +158,4 @@ supportReiMinimap: false
 
 
 # DO NOT CHANGE THIS!
-version: 4
+version: 5

@@ -33,22 +33,22 @@ public class PMan_IPLogger
 		String[] playerip = event.getPlayer().getAddress().toString().split(":");
 		if (playerip[0].startsWith("/"))
 			playerip[0] = playerip[0].replaceFirst("/", "");
-		String player = event.getPlayer().getName();
+		Player p = event.getPlayer();
 		
-		File botLog = new File(VAR.directory + File.separator + "Duplicated IP's.txt");
+		File botLog = new File(VAR.directory + File.separator + "Bots.txt");
 		
 		//join messages
 		if (VAR.config.getBoolean("customJQ")){
 			VAR.msg = VAR.config.getString("joinMsg");
-			VAR.msg = replace(VAR.msg, event.getPlayer());
+			VAR.msg = replace(VAR.msg, p);
 			//support for Rei's Minimap
 			String map = VAR.config.getString("supportReiMinimap");
 			if (!map.toLowerCase().contains("false")){
 				VAR.msg = minimap(map) + VAR.msg;
-				event.getPlayer().sendMessage(""+ChatColor.BLACK+ChatColor.BLACK+ChatColor.DARK_GREEN+ChatColor.DARK_AQUA+ChatColor.DARK_RED+ChatColor.DARK_PURPLE+ChatColor.GOLD+ChatColor.GRAY+ChatColor.YELLOW+ChatColor.WHITE+ VAR.msg);
-			} else {event.getPlayer().sendMessage(VAR.msg);}
+				p.sendMessage(""+ChatColor.BLACK+ChatColor.BLACK+ChatColor.DARK_GREEN+ChatColor.DARK_AQUA+ChatColor.DARK_RED+ChatColor.DARK_PURPLE+ChatColor.GOLD+ChatColor.GRAY+ChatColor.YELLOW+ChatColor.WHITE+ VAR.msg);
+			} else {p.sendMessage(VAR.msg);}
 			VAR.msg = VAR.config.getString("joinMsgOther");
-			VAR.msg = replace(VAR.msg, event.getPlayer());
+			VAR.msg = replace(VAR.msg, p);
 			event.setJoinMessage(VAR.msg);
 		}
 		
@@ -56,7 +56,7 @@ public class PMan_IPLogger
 		try
 		{
 			loadPlayerLog();
-			String path = "players."+player;
+			String path = "players."+p.getName();
 			if (!VAR.pLog.isSet(path+".lastLogin"))
 				VAR.pLog.set(path+".lastLogin", Boolean.valueOf(null));
 			if (!VAR.pLog.isSet(path+".lastLogout"))
@@ -64,7 +64,7 @@ public class PMan_IPLogger
 			if (!VAR.pLog.isSet(path+".Allowed to fly"))
 				VAR.pLog.set(path+".Allowed to fly", Boolean.valueOf(Bukkit.getServer().getAllowFlight()));
 			if (!VAR.pLog.isSet(path+".Displayed Name"))
-				VAR.pLog.set(path+".Displayed Name", Bukkit.getServer().getPlayer(player).getDisplayName());
+				VAR.pLog.set(path+".Displayed Name", p.getDisplayName());
 			if (!VAR.pLog.isSet(path+".Hidden"))
 				VAR.pLog.set(path+".Hidden", Boolean.valueOf(false));
 			if (!VAR.pLog.isSet(path+".Muted"))
@@ -81,7 +81,7 @@ public class PMan_IPLogger
 					loadPlayerLog();
 				}
 				boolean there = false;
-				if (VAR.pLog.getList(path+".IP Adress".isEmpty()) != null){
+				if (VAR.pLog.getList(path+".IP Adress") != null){
 					String s = VAR.pLog.getList(path+".IP Address").toString();
 					s = s.replace("[", "");
 					s = s.replace("]", "");
@@ -108,28 +108,43 @@ public class PMan_IPLogger
 				
 			VAR.pLog.save(VAR.f_player);
 			
+			if (VAR.config.getBoolean("EnableReport")){
+				if (!VAR.pLog.isSet("Reports."+p.getName()))
+					VAR.pLog.set("Reports."+p.getName(), null);
+				VAR.pLog.save(VAR.f_player);
+			}
+			
+			
 			//resetting the values, as defined in the config file
 			
 			if (VAR.config.getString("reset").toLowerCase().contains("fly")){
-				Bukkit.getServer().getPlayer(player).setAllowFlight(Bukkit.getServer().getAllowFlight());
+				p.setAllowFlight(Bukkit.getServer().getAllowFlight());
 				VAR.pLog.set(path+".Allowed to fly", Boolean.valueOf(Bukkit.getServer().getAllowFlight()));
 			} else {
-				Bukkit.getServer().getPlayer(player).setAllowFlight(VAR.pLog.getBoolean(path+".Allowed to fly"));
+				p.setAllowFlight(VAR.pLog.getBoolean(path+".Allowed to fly"));
 			}
 			if (VAR.config.getString("reset").toLowerCase().contains("name")){
-				Bukkit.getServer().getPlayer(player).setDisplayName(player);
-				Bukkit.getServer().getPlayer(player).setPlayerListName(player);
-				VAR.pLog.set(path+".Displayed Name", player);
+				p.setDisplayName(p.getName());
+				p.setPlayerListName(p.getName());
+				VAR.pLog.set(path+".Displayed Name", p.getName());
 			} else { 
-				Bukkit.getServer().getPlayer(player).setDisplayName(VAR.pLog.getString(path+".Displayed Name"));
-				Bukkit.getServer().getPlayer(player).setPlayerListName(VAR.pLog.getString(path+".Displayed Name"));
+				p.setDisplayName(VAR.pLog.getString(path+".Displayed Name"));
+				p.setPlayerListName(VAR.pLog.getString(path+".Displayed Name"));
 			}
 			if (VAR.config.getString("reset").toLowerCase().contains("hidden")){
-				Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer());
+				for (Player p2: Bukkit.getServer().getOnlinePlayers()){
+					p2.showPlayer(p);
+				}
 				VAR.pLog.set(path+".Hidden", Boolean.valueOf(false));
 			} else if (VAR.pLog.getBoolean(path+".Hidden")){
-				Bukkit.getServer().getPlayer(player).hidePlayer(event.getPlayer());
-			} else { Bukkit.getServer().getPlayer(player).showPlayer(event.getPlayer()); }
+				for (Player p2: Bukkit.getServer().getOnlinePlayers()){
+					p2.hidePlayer(p);
+				}
+			} else {
+				for (Player p2: Bukkit.getServer().getOnlinePlayers()){
+					p2.showPlayer(p); 
+				}
+			}
 			if (VAR.config.getString("reset").toLowerCase().contains("muted"))
 				VAR.pLog.set(path+".Muted", Boolean.valueOf(false));
 				
@@ -140,40 +155,42 @@ public class PMan_IPLogger
 		} catch (Exception ex){
 			ex.printStackTrace();
 		}
-		if (event.getPlayer().hasPermission("pman.update") || event.getPlayer().isOp()){
-			checkVersion(event.getPlayer());
+		if (p.hasPermission("pman.update") || p.isOp()){
+			checkVersion(p);
 		}
 		//BotBlocker
 		if (VAR.config.getBoolean("enableBotBlock")){
-				for(Player online: Bukkit.getServer().getOnlinePlayers()){
+			for(Player online: Bukkit.getServer().getOnlinePlayers()){
 				String[] onlineip = online.getAddress().toString().split(":");
-				if ((onlineip[0].equalsIgnoreCase(playerip[0])) && (!onlineip[1].equalsIgnoreCase(playerip[1]))){
-					VAR.log.info(VAR.logHeader +ChatColor.RED+"Found duplicated ip: "+player+" and "+online.getName());
+				if ((onlineip[0].equalsIgnoreCase("/"+playerip[0])) && (!onlineip[1].equalsIgnoreCase(playerip[1]))){
+					VAR.log.info(VAR.logHeader +ChatColor.RED+"Found duplicated ip: "+p.getName()+" and "+online.getName());
 					VAR.doubleIP = true;
 				}
 			}
 			if (VAR.doubleIP){
 				if (VAR.config.getString("punishment").equalsIgnoreCase("kick")){
-					event.getPlayer().kickPlayer("You have been kicked for using a bot. Or being one.");
-					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED +player+" has been KICKED for logging in");
+					p.kickPlayer("You have been kicked for using a bot. Or being one.");
+					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED +p.getName()+" has been KICKED for logging in");
 					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED+"with a duplicated IP address! (Bot?)");
-					VAR.log.info(VAR.logHeader +player+" has been kicked (duplicated ip)");
+					if (VAR.logit)
+						VAR.log.info(VAR.logHeader +p.getName()+" has been kicked (duplicated ip)");
 				}
 				if (VAR.config.getString("punishment").equalsIgnoreCase("ban")){
-					event.getPlayer().kickPlayer("You have been banned for using a bot. Or being one.");
+					p.kickPlayer("You have been banned for using a bot. Or being one.");
 					Bukkit.banIP(playerip[0]);
-					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED +player+" has been BANNED for logging in");
+					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED +p.getName()+" has been BANNED for logging in");
 					Bukkit.getServer().broadcastMessage(VAR.Header+ ChatColor.RED+"with a duplicated IP address! (Bot?)");
-					VAR.log.info(VAR.logHeader +player+" has been banned (duplicated ip)");
+					if (VAR.logit)
+						VAR.log.info(VAR.logHeader +p.getName()+" has been banned (duplicated ip)");
 				}
 				if (VAR.config.getBoolean("logDuplicatedIps")){
 					try {
 						if (!botLog.exists()){
 							botLog.createNewFile();
-							VAR.log.info(VAR.logHeader + "Creating IPLog file.");
+							VAR.log.info(VAR.logHeader + "Creating BotLog file.");
 						}
 						BufferedWriter writer = new BufferedWriter(new FileWriter(botLog, true));
-						writer.write("["+getDate()+"] "+player+" - '"+playerip[0]+"'");
+						writer.write("["+getDate()+"] "+p.getName()+" - '"+playerip[0]+"'");
 						writer.newLine();
 						writer.flush();
 						writer.close();

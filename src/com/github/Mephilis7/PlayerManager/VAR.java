@@ -21,6 +21,7 @@ public class VAR
 	public static boolean doubleIP;
 	public static String msg = "";
 	public static boolean logit = false;
+	public static boolean console = false;
 	//config file:
 	public static String directory = "plugins" + File.separator + "PlayerManager";
 	static File f_config = new File(directory + File.separator + "config.yml");
@@ -28,4 +29,6 @@ public class VAR
 	//player file:
 	static File f_player = new File(directory + File.separator + "PlayerLog.yml");
 	static YamlConfiguration pLog;
+	//chache:
+	static File f_cache = new File("cache" + File.separator + "PlayerManager");
 }
