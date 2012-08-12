@@ -1,7 +1,7 @@
 PlayerManager v1.8 by Mephilis7
 =====================================
 
-PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.2.5-R3.0
+PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.3.1-R1.0
 It lets you manage your players better. What it's able to do exactly should be read below.
 
 License:
