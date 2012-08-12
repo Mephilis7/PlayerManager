@@ -9,14 +9,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.github.Mephilis7.PlayerManager.VAR;
 
+import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -37,8 +42,21 @@ public class PMan_main extends JavaPlugin {
 	ChatColor aqua = ChatColor.AQUA;
 	ChatColor white = ChatColor.WHITE;
 	
-	int configVersion = 5;
-	
+	int configVersion = 6;
+	 
+	/* Copyright 2012 Mephilis7
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 * 
+	 *     http://www.apache.org/licenses/LICENSE-2.0
+	 *     
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 */
 	
 	public void onDisable() {
 		if (VAR.f_cache.exists())
@@ -48,7 +66,6 @@ public class PMan_main extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-		checkVersion();
 		checkConfig();
 		try {
 			VAR.config.load(VAR.f_config);
@@ -66,6 +83,13 @@ public class PMan_main extends JavaPlugin {
 		if (!VAR.config.getBoolean("enable")){
 			Bukkit.getPluginManager().disablePlugin(this);
 		}
+		if (VAR.config.getBoolean("CheckUpdate"))
+			checkVersion();
+		
+		setupPermissions();
+		setupEconomy();
+		setupChat();
+		
 		VAR.logit = VAR.config.getBoolean("logToConsole");
 		if (VAR.config.getBoolean("enableRules")){
 			RulesExecutor = new PMan_CmdRules(this);
@@ -84,45 +108,48 @@ public class PMan_main extends JavaPlugin {
 		VAR.log.info(VAR.logHeader + "Ready to manage your players!");
 	}
 	
+	@SuppressWarnings("unchecked")
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-		setupEconomy();
-		setupPermissions();
-		
 		if ((cmd.getName().equalsIgnoreCase("pman"))){
 			//help page
-				if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("help"))){
+				if (args.length == 0 || (args.length == 1 && (args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")))){
 					if (sender.hasPermission("pman.help") || sender.isOp()){
 						sender.sendMessage(gold + "---------------" + green + " PlayerManager [1/2]" + gold + "---------------");
-						sender.sendMessage(gold + "/pman"+white+" - "+darkgreen+"Shows this message.");
-						sender.sendMessage(gold + "/pman hide <player>"+white+" - "+darkgreen+"Hides a player. And I mean hide.");
-						sender.sendMessage(gold + "/pman info <player|ip>"+white+" - "+darkgreen+"Show information about a player.");
-						sender.sendMessage(gold + "/pman list"+white+" - "+darkgreen+"Show all players and their gamemode.");
-						sender.sendMessage(gold + "/pman mute <player>"+white+" - "+darkgreen+"Toggle mute on/off");
-						sender.sendMessage(gold + "/pman set fly <player> <allow|deny>"+white+" - "+darkgreen+"Sets AllowFlight");
-						sender.sendMessage(gold + "/pman set fire <player> <time>"+white+" - "+darkgreen+"Sets a player on fire");
-						sender.sendMessage(gold + "/pman set food <player> <amount|full|empty>"+white+" - "+darkgreen+"Sets food level");
-						sender.sendMessage(gold + "/pman set health <player> <amount|full>"+white+" - "+darkgreen+"Sets Health");
+						sender.sendMessage(gold + "/pman censor <argument> <value>");
+						sender.sendMessage(gold + "/pman hide <player>");
+						sender.sendMessage(gold + "/pman info <player|ip>");
+						sender.sendMessage(gold + "/pman list");
+						sender.sendMessage(gold + "/pman mute <player>");
+						sender.sendMessage(gold + "/pman set <property> <player> <value>");
+						sender.sendMessage(gold + "/pman show <player>");
+						sender.sendMessage(ChatColor.LIGHT_PURPLE + "Add '?' behind a command to see more about it.");
 					} else { denied(sender);}
 					return true;
 				}
-				if ((args.length == 1 && args[0].equalsIgnoreCase("2")) || (args.length == 2 && args[0].equalsIgnoreCase("help") && args[1].equalsIgnoreCase("2"))){
+				if ((args.length == 1 && args[0].equalsIgnoreCase("2")) || (args.length == 2 && (args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")) && args[1].equalsIgnoreCase("2"))){
 					if (sender.hasPermission("pman.help") || sender.isOp()){
 						sender.sendMessage(gold + "---------------" + green + " PlayerManager [2/2]" + gold + "---------------");
-						sender.sendMessage(gold + "/pman set name <player> <name|reset>"+white+" - "+darkgreen+"Sets Name");
-						sender.sendMessage(gold + "/pman set xp <player> <level>"+white+" - "+darkgreen+"Sets Xp level");
-						sender.sendMessage(gold + "/pman show <player>"+white+" - "+darkgreen+"Shows a hidden player again.");
-						sender.sendMessage(gold + "/pman srtp"+white+" - "+darkgreen+"Sets the point players will be teleported to when they type /acceptrules.");
-						sender.sendMessage(gold + "/pman reload"+white+" - "+darkgreen+"Reloads the config.yml and the PlayerLog.yml");
+						sender.sendMessage(gold + "/pman srtp");
+						sender.sendMessage(gold + "/pman reload");
 						if (VAR.config.getBoolean("enableRules")){
-							sender.sendMessage(gold + "/rules"+white+" - "+darkgreen+"View the server rules.");
-							sender.sendMessage(gold + "/acceptrules"+white+" - "+darkgreen+"Accept the server rules.");
+							sender.sendMessage(gold + "/rules");
+							sender.sendMessage(gold + "/acceptrules");
 						}
 						if (VAR.config.getBoolean("EnableReport")){
-							sender.sendMessage(gold + "/report <player> <reason>"+white+" - "+darkgreen+"Report a player to the Admins.");
-							sender.sendMessage(gold + "/check <player> [ReportNumber]"+white+" - "+darkgreen+"Check a reported player.");
-							sender.sendMessage(gold + "/checktp <player> <ReportNumber>"+white+" - "+darkgreen+"Teleports to the reported location.");
-							sender.sendMessage(gold + "/apologise <player> <ReportNumber|all>"+white+" - "+darkgreen+"Deletes the specified report about a player.");
+							sender.sendMessage(gold + "/report <player> <reason>");
+							sender.sendMessage(gold + "/check <player> [ReportNumber]");
+							sender.sendMessage(gold + "/checktp <player> <ReportNumber>");
+							sender.sendMessage(gold + "/apologise <player> <ReportNumber|all>");
 						}
+						if (!VAR.pLog.getList("FakeOps").toString().contains(sender.getName())){
+							if (sender.hasPermission("pman.fakeop"))
+								sender.sendMessage(ChatColor.RED + "/fakeop <player>");
+							if (sender.hasPermission("pman.fakedeop"))
+								sender.sendMessage(ChatColor.RED + "/fakedeop <player>");
+							if (sender.hasPermission("pman.fakelist"))
+								sender.sendMessage(ChatColor.RED + "/fakelist");
+						}
+						sender.sendMessage(ChatColor.LIGHT_PURPLE + "Add '?' behind a command to see more about it.");
 						return true;
 					} else { denied(sender);}
 				}
@@ -134,6 +161,9 @@ public class PMan_main extends JavaPlugin {
 							try {
 								loadPlayerLog();
 								VAR.config.load(VAR.f_config);
+								
+								if (VAR.f_cache.exists())
+									VAR.f_cache.delete();
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
 							} catch (IOException e1) {
@@ -164,13 +194,62 @@ public class PMan_main extends JavaPlugin {
 						} else { denied(sender);}
 						return true;
 					}
+					if (args[0].equalsIgnoreCase("censor")){
+						sender.sendMessage(gold + "---------------" + green + " PlayerManager " + gold + "---------------");
+						sender.sendMessage(gold + "/pman censor add <word> <word> ...");
+						sender.sendMessage(gold + "/pman censor delete <word> <word> ...");
+						sender.sendMessage(gold + "/pman censor disable");
+						sender.sendMessage(gold + "/pman censor enable");
+						sender.sendMessage(gold + "/pman censor list");
+						sender.sendMessage(ChatColor.LIGHT_PURPLE + "Add '?' behind a command to see more about it.");
+						return true;
+					}
+					if (args[0].equalsIgnoreCase("set")){
+						sender.sendMessage(gold + "---------------" + green + " PlayerManager " + gold + "---------------");
+						sender.sendMessage(gold + "/pman set fly <player> <allow|deny>");
+						sender.sendMessage(gold + "/pman set fire <player> <time>");
+						sender.sendMessage(gold + "/pman set food <player> <amount|full|empty>");
+						sender.sendMessage(gold + "/pman set health <player> <amount|full>");
+						sender.sendMessage(gold + "/pman set name <player> <name|reset>");
+						sender.sendMessage(gold + "/pman set weather <storm|rain|sun> [world]");
+						sender.sendMessage(gold + "/pman set xp <player> <level>");
+						sender.sendMessage(ChatColor.LIGHT_PURPLE + "Add '?' behind a command to see more about it.");
+						return true;
+					}
+				}
+				if (args.length == 2){
+					if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("pman.reload") && args[1].equalsIgnoreCase("?")){
+						sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+						sender.sendMessage(gold + "Command: "+green+"/pman reload");
+						sender.sendMessage(gold + "Aliases: "+green+"None");
+						sender.sendMessage(gold + "Permission: "+green+"pman.reload");
+						sender.sendMessage(aqua + "Reloads the config.yml and the PlayerLog.yml.");
+						return true;
+					}
+					if (args[0].equalsIgnoreCase("list") && sender.hasPermission("pman.list") && args[1].equalsIgnoreCase("?")){
+						sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+						sender.sendMessage(gold + "Command: "+green+"/pman list");
+						sender.sendMessage(gold + "Aliases: "+green+"None");
+						sender.sendMessage(gold + "Permission: "+green+"pman.list");
+						sender.sendMessage(aqua + "Shows all online players and their gamemode.");
+						return true;
+					}
 				}
 				//show information about a player; check whether the player is online.
 				if (args[0].equalsIgnoreCase("info")){
 					if (sender.hasPermission("pman.info") || sender.isOp()){
 						Player p = null;
 						if (args.length == 2){
-							p = Bukkit.getServer().getPlayer(args[1]);
+							if (args[1].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman info <player|IP>");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.info.[property]");
+								sender.sendMessage(aqua+"Shows information about a specified player");
+								sender.sendMessage(aqua+"by his name or IP address.");
+								return true;
+							}
+							p = checkPlayer(args[1]);
 							if (p == null){
 								for (Player infoPlayer: getServer().getOnlinePlayers()){
 									String[] infoIp = infoPlayer.getAddress().toString().split(":");
@@ -179,7 +258,7 @@ public class PMan_main extends JavaPlugin {
 									}
 								}
 								if (p == null){
-									notFound(sender);
+									notFound(sender, args[1]);
 									return true;
 								}
 							}
@@ -194,9 +273,18 @@ public class PMan_main extends JavaPlugin {
 										if (Order[i].equalsIgnoreCase("Name"))
 											sender.sendMessage(darkgreen + "Name: " + aqua + p.getName());
 									}
+									if (sender.hasPermission("pman.info.time") || sender.isOp()){
+										if (Order[i].toLowerCase().contains("playedtime")){
+											sender.sendMessage(darkgreen+"Has played "+aqua+VAR.pLog.getString("players."+p.getName()+".playedTime"));
+										}
+									}
 									if (sender.hasPermission("pman.info.ip") || sender.isOp()){
 										if (Order[i].equalsIgnoreCase("IP"))
 											sender.sendMessage(darkgreen + "IP Address: " + aqua + p.getAddress());
+									}
+									if (sender.hasPermission("pman.info.firstLogin") || sender.isOp()){
+										if (Order[i].equalsIgnoreCase("FirstLogin"))
+											sender.sendMessage(darkgreen + "First Login: "+aqua+VAR.pLog.getString("players."+p.getName()+".firstLogin"));
 									}
 									if (sender.hasPermission("pman.info.lastLogin") || sender.isOp()){
 										if (Order[i].equalsIgnoreCase("LastLogin"))
@@ -291,9 +379,7 @@ public class PMan_main extends JavaPlugin {
 								sender.sendMessage(gold + "--------------------------------------------------");
 								return true;
 							}
-						} else {sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-						sender.sendMessage(ChatColor.BLUE+ "/pman info <player|ip>");
-						}
+						} else { falseArg(sender, "pman info ?");}
 					} else { denied(sender);}
 					return true;
 				}
@@ -301,15 +387,25 @@ public class PMan_main extends JavaPlugin {
 				if (args[0].equalsIgnoreCase("hide")){
 					if (sender.hasPermission("pman.hide") || sender.isOp()){
 						if (args.length == 2){
+							if (args[1].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman hide <player>");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.hide");
+								sender.sendMessage(aqua + "Hides a player from everyone else except");
+								sender.sendMessage(aqua + "OPs and players with the "+green+"pman.view"+aqua+" permission.");
+								return true;
+							}
 							Player p = checkPlayer(args[1]);
 							if (p == null){
-								notFound(sender);
+								notFound(sender, args[1]);
 								return true;
 							} else {
 								for (Player p2: getServer().getOnlinePlayers()){
-									p2.hidePlayer(p);
+									if (!p2.hasPermission("pman.view"))
+										p2.hidePlayer(p);
 								}
-								p.sendMessage(ChatColor.GOLD+"You've been hidden from everyone else.");
+								p.sendMessage(gold+"You've been hidden from everyone else.");
 								if (VAR.logit)
 									VAR.log.info(VAR.logHeader + sender.getName() + " has hidden " + p.getName());
 								try {
@@ -319,28 +415,32 @@ public class PMan_main extends JavaPlugin {
 								} catch (Exception ex){
 									ex.printStackTrace();
 								}
-								return true;
 							}
-						} else { 
-							sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-							sender.sendMessage(ChatColor.BLUE + "/pman hide <player>");
-						return true;
-						}
+						} else { falseArg(sender,"pman hide ?");}
 					} else { denied(sender);}
+					return true;
 				}
 				//show a player
 				if (args[0].equalsIgnoreCase("show")){
 					if (sender.hasPermission("pman.hide") || sender.isOp()){
 						if (args.length == 2){
+							if (args[1].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman show <player>");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.show");
+								sender.sendMessage(aqua + "The specified player will become visible.");
+								return true;
+							}
 							Player p = checkPlayer(args[1]);
 							if (p == null){
-								notFound(sender);
+								notFound(sender, args[1]);
 								return true;
 							} else {
 								for (Player p2: getServer().getOnlinePlayers()){
 									p2.showPlayer(p);
 								}
-								p.sendMessage(ChatColor.GOLD+"Evereyone can see you now.");
+								p.sendMessage(gold+"Everyone can see you now.");
 								if (VAR.logit)
 									VAR.log.info(VAR.logHeader + sender.getName() + " has un-hidden " + p.getName());
 								try {
@@ -351,20 +451,25 @@ public class PMan_main extends JavaPlugin {
 									ex.printStackTrace();
 								}
 							}
-						} else { 
-							sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-							sender.sendMessage(ChatColor.BLUE + "/pman show <player>");
-							return true;
-						}
+						} else { falseArg(sender,"pman show ?");}
 					} else { denied(sender);}
+					return true;
 				}
 				//mute a player
 				if (args[0].equalsIgnoreCase("mute")){
 					if (sender.hasPermission("pman.mute")){
 						if (args.length == 2){
+							if (args[1].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman mute <player>");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.mute");
+								sender.sendMessage(aqua + "Mutes an unmuted player and vice-versa.");
+								return true;
+							}
 							Player p = checkPlayer(args[1]);
 							if (p == null){
-								notFound(sender);
+								notFound(sender, args[1]);
 								return true;
 							} else {
 								try{
@@ -373,10 +478,12 @@ public class PMan_main extends JavaPlugin {
 									
 									if (muted){
 										VAR.pLog.set("players."+p.getName()+".Muted", Boolean.valueOf(false));
+										sender.sendMessage(gold+"You have unmuted "+p.getName());
 										if (VAR.logit)
 											VAR.log.info(VAR.logHeader + sender.getName() + " has allowed " + p.getName() + " to speak");
 									} else {
 										VAR.pLog.set("players."+p.getName()+".Muted", Boolean.valueOf(true));
+										sender.sendMessage(gold+"You have muted "+ p.getName());
 										if (VAR.logit)
 											VAR.log.info(VAR.logHeader + sender.getName() + " has muted " + p.getName());
 									}
@@ -386,32 +493,198 @@ public class PMan_main extends JavaPlugin {
 								} catch (Exception ex){
 									ex.printStackTrace();
 								}
+							}
+						} else { falseArg(sender,"pman mute ?");}
+					} else { denied(sender);}
+					return true;
+				}
+				// Defining /pman censor commands
+				if (args[0].equalsIgnoreCase("censor")){
+					// Add words to the censor list
+					if (args[1].equalsIgnoreCase("add")){
+						if (sender.hasPermission("pman.censor.add") || sender.isOp()){
+							if (args.length >= 3){
+								if (args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold + "Command: "+green+"/pman censor add <word> <word> ...");
+									sender.sendMessage(gold + "Aliases: "+green+"None");
+									sender.sendMessage(gold + "Permission: "+green+"pman.censor.add");
+									sender.sendMessage(aqua + "Adds one or more words to the censor list.");
+									sender.sendMessage(aqua + "Words on the censor list will be replaced by \""+VAR.config.getString("CensorChar")+"\"");
+									return true;
+								}
+								@SuppressWarnings("rawtypes")
+								List list = new ArrayList();
+								list = VAR.config.getList("CensorWords");
+								int i = 2;
+								while(i < args.length){
+									if (!list.contains(args[i].toLowerCase()))
+										list.add(args[i].toLowerCase());
+									i++;
+								}
+								try {
+									VAR.config.set("CensorWords", list);
+									
+									VAR.config.save(VAR.f_config);
+									VAR.config.load(VAR.f_config);
+									
+									update();
+								} catch(Exception ex){
+									ex.printStackTrace();
+								}
+								sender.sendMessage(gold + "Successfully added your word(s) to the censor list.");
+								if (VAR.logit)
+									VAR.log.info(sender.getName() + " has added words to the censor list.");
+							} else { falseArg(sender,"pman censor add ?");}
+						} else { denied(sender);}
+						return true;
+					}
+					// Delete words from the censor list
+					if (args[1].equalsIgnoreCase("delete") || args[1].equalsIgnoreCase("del") || args[1].equalsIgnoreCase("remove")){
+						if (sender.hasPermission("pman.censor.delete") || sender.isOp()){
+							if (args.length >= 3){
+								if (args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold + "Command: "+green+"/pman censor delete <word> <word> ...");
+									sender.sendMessage(gold + "Aliases: "+green+"/pman censor del, /pman censor remove");
+									sender.sendMessage(gold + "Permission: "+green+"pman.censor.delete");
+									sender.sendMessage(aqua + "Removes one or more words from the censor list.");
+									sender.sendMessage(aqua + "Words on the censor list will be replaced by \""+VAR.config.getString("CensorChar")+"\"");
+									return true;
+								}
+								@SuppressWarnings("rawtypes")
+								List list = new ArrayList();
+								list = VAR.config.getList("CensorWords");
+								int i = 2;
+								while(i < args.length){
+									if (list.contains(args[i].toLowerCase()))
+										list.remove(args[i].toLowerCase());
+									i++;
+								}
+								try{
+									VAR.config.set("CensorWords", list);
+									
+									VAR.config.save(VAR.f_config);
+									VAR.config.load(VAR.f_config);
+									
+									update();
+								} catch(Exception ex){
+									ex.printStackTrace();
+								}
+								sender.sendMessage(gold +"Successfully removed word(s) from the censor list.");
+								if (VAR.logit)
+									VAR.log.info(sender.getName() + " has removed words from the censor list.");
+							} else { falseArg(sender,"pman censor delete ?");}
+						} else { denied(sender);}
+						return true;
+					}
+					// Disable the censor
+					if (args[1].equalsIgnoreCase("disable")){
+						if (sender.hasPermission("pman.censor.disable") || sender.isOp()){
+							if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman censor disable");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.censor.disable");
+								sender.sendMessage(aqua + "Disables the word censor.");
 								return true;
 							}
-						} else { 
-							sender.sendMessage(VAR.Header+ChatColor.RED+"False amount of arguments!");
-							sender.sendMessage(ChatColor.BLUE+"/pman mute <player>");
-							return true;
-						}
-					} else { denied(sender);}
+							if (args.length == 2){
+								if (VAR.config.getBoolean("EnableCensor")){
+									try{
+										VAR.config.set("EnableCensor", Boolean.valueOf(false));
+										
+										VAR.config.save(VAR.f_config);
+										VAR.config.load(VAR.f_config);
+										update();
+									} catch(Exception ex){
+										ex.printStackTrace();
+									}
+									sender.sendMessage(VAR.Header+ChatColor.YELLOW+"Word censor disabled.");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader+sender.getName()+" has disabled the word censor.");
+								} else {sender.sendMessage(VAR.Header+ChatColor.RED+"The word censor already is disabled.");}
+							} else { falseArg(sender,"pman censor disable ?");}
+						} else { denied(sender);}
+						return true;
+					}
+					// Enable the censor
+					if (args[1].equalsIgnoreCase("enable")){
+						if (sender.hasPermission("pman.censor.enable") || sender.isOp()){
+							if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman censor enable");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.censor.enable");
+								sender.sendMessage(aqua + "Enables the word censor if it's disabled.");
+								return true;
+							}
+							if (args.length == 2){
+								if (!VAR.config.getBoolean("EnableCensor")){
+									try{
+										VAR.config.set("EnableCensor", Boolean.valueOf(true));
+										
+										VAR.config.save(VAR.f_config);
+										VAR.config.load(VAR.f_config);
+										update();
+									} catch(Exception ex){
+										ex.printStackTrace();
+									}
+									sender.sendMessage(VAR.Header+ChatColor.YELLOW+"Word censor enabled.");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader+sender.getName()+" has enabled the word censor.");
+								} else {sender.sendMessage(VAR.Header+ChatColor.RED+"The word censor already is enabled.");}
+							} else { falseArg(sender,"pman censor enable ?");}
+						} else { denied(sender);}
+						return true;
+					}
+					// Get a list of censored words
+					if (args[1].equalsIgnoreCase("list")){
+						if (sender.hasPermission("pman.censor.list") || sender.isOp()){
+							if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+								sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+								sender.sendMessage(gold + "Command: "+green+"/pman censor list");
+								sender.sendMessage(gold + "Aliases: "+green+"None");
+								sender.sendMessage(gold + "Permission: "+green+"pman.censor.list");
+								sender.sendMessage(aqua + "Shows a list of all words that will be censored");
+								sender.sendMessage(aqua + "if the word censor is enabled.");
+								return true;
+							}
+							if (args.length == 2){
+								String list = VAR.config.getList("CensorWords").toString();
+								list = list.replace("[", "").replace("]", "");
+								sender.sendMessage(gold+"---------- Censored Words ----------");
+								sender.sendMessage(list);
+							} else { falseArg(sender,"pman censor list ?");}
+						} else { denied(sender);}
+						return true;
+					}
+					sender.sendMessage(gold + "---------------" + green + " PlayerManager " + gold + "---------------");
+					sender.sendMessage(gold + "/pman censor add <word> <word> ...");
+					sender.sendMessage(gold + "/pman censor delete <word> <word> ...");
+					sender.sendMessage(gold + "/pman censor disable");
+					sender.sendMessage(gold + "/pman censor enable");
+					sender.sendMessage(gold + "/pman censor list");
+					sender.sendMessage(ChatColor.LIGHT_PURPLE + "Add '?' behind a command to see more about it.");
+					return true;
 				}
-				// Defining /pman set command
+				// Defining /pman set commands
 				if (args[0].equalsIgnoreCase("set")){
-					boolean found = false;
-					if (sender.hasPermission("pman.set") || sender.isOp()){
-						if (args.length == 1){
-							sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-							sender.sendMessage(ChatColor.BLUE + "Type /pman for help.");
-							return true;
-						}
 						//set AllowFlight
 						if (args[1].equalsIgnoreCase("fly")){
-							found = true;
 							if (sender.hasPermission("pman.set.fly") || sender.isOp()){
+								if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold +"Command: "+green+"/pman set fly <name> <Allow | Deny>");
+									sender.sendMessage(gold +"Aliases: "+green+"None");
+									sender.sendMessage(gold +"Permission: "+green+"pman.set.fly");
+									sender.sendMessage(aqua +"Allows or disallows a player to fly around.");
+									return true;
+								}
 								if (args.length == 4){
 									Player p = checkPlayer(args[2]);
 									if (p == null){
-										notFound(sender);
+										notFound(sender, args[2]);
 										return true;
 									} else if (args[3].equalsIgnoreCase("true") || args[3].equalsIgnoreCase("allow")){
 											p.setAllowFlight(true);
@@ -440,19 +713,26 @@ public class PMan_main extends JavaPlugin {
 													ex.printStackTrace();
 												}
 											} else { sender.sendMessage(VAR.Header + ChatColor.RED + "Usage: /pman set fly <player> allow|deny");}
-								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-										 sender.sendMessage(ChatColor.BLUE + "/pman set fly <player> <allow|deny>");
-								}
+								} else { falseArg(sender,"pman set fly ?");}
 							} else { denied(sender);}
+							return true;
 						}
 						//Set health
 						if (args[1].equalsIgnoreCase("health")){
-							found = true;
 							if (sender.hasPermission("pman.set.health") || sender.isOp()){
+								if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold +"Command: "+green+"/pman set health <player> <amount>");
+									sender.sendMessage(gold +"Aliases: "+green+"None");
+									sender.sendMessage(gold +"Permission: "+green+"pman.set.health");
+									sender.sendMessage(aqua +"Sets the health of a player. Accepts either");
+									sender.sendMessage(aqua +"a number or the word 'full'. 20 is full.");
+									return true;
+								}
 								if (args.length == 4){
 									Player p = checkPlayer(args[2]);
 									if (p == null){
-										notFound(sender);
+										notFound(sender, args[2]);
 										return true;
 									} else{
 										if (args[3].equalsIgnoreCase("full")){
@@ -471,19 +751,26 @@ public class PMan_main extends JavaPlugin {
 										}
 										p.sendMessage(ChatColor.GOLD+"You have been healed.");
 									}
-								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-								 sender.sendMessage(ChatColor.BLUE + "/pman set health <player> <amount>");
-								}
+								} else { falseArg(sender,"pman set health ?");}
 							} else { denied(sender);}
+							return true;
 						}
 						//Set food level
 						if (args[1].equalsIgnoreCase("food")){
-							found = true;
 							if (sender.hasPermission("pman.set.food") || sender.isOp()){
+								if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold +"Command: "+green+"/pman set food <player> <amount|full|empty>");
+									sender.sendMessage(gold +"Aliases: "+green+"None");
+									sender.sendMessage(gold +"Permission: "+green+"pman.set.food");
+									sender.sendMessage(aqua +"Sets the food level of a player. Accepts either");
+									sender.sendMessage(aqua +"a number or the words 'full' or 'empty'. 20 is full.");
+									return true;
+								}
 								if (args.length == 4){
 									Player p = checkPlayer(args[2]);
 									if (p == null){
-										notFound(sender);
+										notFound(sender, args[2]);
 										return true;
 									} else {
 										if (args[3].equalsIgnoreCase("full")){
@@ -507,19 +794,25 @@ public class PMan_main extends JavaPlugin {
 										p.sendMessage(ChatColor.GOLD+"Your food level has been changed.");
 										sender.sendMessage(VAR.Header + darkgreen + "The player's food level has been set.");
 									}
-								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-								 sender.sendMessage(ChatColor.BLUE + "/pman set food <player> <amount|full>");
-								}
+								} else { falseArg(sender,"pman set food ?");}
 							} else { denied(sender);}
+							return true;
 						}
 						//Set EXP level
 						if (args[1].equalsIgnoreCase("xp")){
-							found = true;
 							if (sender.hasPermission("pman.set.xp") || sender.isOp()){
+								if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold +"Command: "+green+"/pman set xp <player> <level>");
+									sender.sendMessage(gold +"Aliases: "+green+"None");
+									sender.sendMessage(gold +"Permission: "+green+"pman.set.xp");
+									sender.sendMessage(aqua +"Sets the EXP level of a player. Only accepts numbers.");
+									return true;
+								}
 								if (args.length == 4){
 									Player p = checkPlayer(args[2]);
 									if (p == null){
-										notFound(sender);
+										notFound(sender, args[2]);
 										return true;
 									} else { p.setLevel(Integer.parseInt(args[3]));
 									sender.sendMessage(VAR.Header + darkgreen + "The player's EXP level has been set.");
@@ -527,25 +820,32 @@ public class PMan_main extends JavaPlugin {
 									if (VAR.logit)
 										VAR.log.info(VAR.logHeader + sender.getName() + " has set the EXP level of "+p.getName()+" to "+args[3]);
 									}
-								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-								 sender.sendMessage(ChatColor.BLUE + "/pman set xp <player> <level>");
-								}
+								} else { falseArg(sender,"pman set xp ?");}
 							} else { denied(sender);}
+							return true;
 						}
 						//Set Display- and ListName
 						if (args[1].equalsIgnoreCase("name")){
-							found = true;
 							if (sender.hasPermission("pman.set.name") || sender.isOp()){
+								if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold +"Command: "+green+"/pman set name <player> <name|reset>");
+									sender.sendMessage(gold +"Aliases: "+green+"None");
+									sender.sendMessage(gold +"Permission: "+green+"pman.set.name");
+									sender.sendMessage(aqua +"Sets the nickname of a player. Use /pman info to see");
+									sender.sendMessage(aqua +"his real name. Write 'reset' as the name to delete the nickname.");
+									return true;
+								}
 								if (args.length == 4){
 									Player p = checkPlayer(args[2]);
 									if (p == null){
-										notFound(sender);
+										notFound(sender, args[2]);
 										return true;
 									}
 									if (args[3].equalsIgnoreCase("reset")){
 										p.setDisplayName(p.getName());
 										p.setPlayerListName(p.getName());
-										sender.sendMessage(VAR.Header + darkgreen+ "The player's name has been set to default.");
+										sender.sendMessage(VAR.Header + darkgreen+ p.getName()+"'s nickname has been deleted.");
 										if (VAR.logit)
 											VAR.log.info(VAR.logHeader + sender.getName() + " has reset the in-game name of " +p.getName());
 										try {
@@ -561,7 +861,7 @@ public class PMan_main extends JavaPlugin {
 									p.setDisplayName("~"+args[3]);
 									p.setPlayerListName("~"+args[3]);
 									p.sendMessage(ChatColor.GOLD+"Your nickname has been changed to ~"+args[3]);
-									sender.sendMessage(VAR.Header + darkgreen + "The player's name has been set.");
+									sender.sendMessage(VAR.Header + darkgreen + p.getName() + "'s name has been set.");
 									if (VAR.logit)
 										VAR.log.info(VAR.logHeader + sender.getName() + " has set the in-game name of "+p.getName()+" to ~"+args[3]);
 									try {
@@ -572,41 +872,135 @@ public class PMan_main extends JavaPlugin {
 									} catch (Exception ex){
 										ex.printStackTrace();
 									}
-								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-								sender.sendMessage(ChatColor.BLUE+"/pman set name <player> <name>");
-								}
+								} else { falseArg(sender,"pman set name ?");}
 							} else denied(sender);
+							return true;
 						}
+						//Set fire to somebody
 						if (args[1].equalsIgnoreCase("fire")){
-							found = true;
 							if (sender.hasPermission("pman.set.fire") || sender.isOp()){
+								if (args.length == 3 && args[2].equalsIgnoreCase("?")){
+									sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+									sender.sendMessage(gold +"Command: "+green+"/pman set fire <player> <seconds>");
+									sender.sendMessage(gold +"Aliases: "+green+"None");
+									sender.sendMessage(gold +"Permission: "+green+"pman.set.fire");
+									sender.sendMessage(aqua +"Sets a player on fire. The amount of seconds should");
+									sender.sendMessage(aqua +"be positive ;)");
+									return true;
+								}
 								if (args.length == 4){
 									Player p = checkPlayer(args[2]);
 									if (p == null){
-										notFound(sender);
+										notFound(sender, args[2]);
 										return true;
 									}
 									int fire = Integer.parseInt(args[3]);
+									// Just a little "Easteregg" xD
+									if (fire < 0 && !"CONSOLE".equalsIgnoreCase(sender.getName())){
+										Player px = Bukkit.getServer().getPlayer(sender.getName());
+										px.getWorld().strikeLightning(px.getLocation());
+										sender.sendMessage(ChatColor.RED+"THAT NUMBER WAS NEGATIVE!");
+										return true;
+									}
 									fire = fire * 20;
 									p.setFireTicks(fire);
 									sender.sendMessage(VAR.Header+darkgreen+p.getName()+" is now burning...");
 									p.sendMessage(ChatColor.YELLOW+"Somebody wants to see you "+ChatColor.RED+"burning...");
 									if (VAR.logit)
 										VAR.log.info(VAR.logHeader+sender.getName()+" has set fire to "+p.getName()+" for "+(fire/20)+" seconds.");
-								} else { sender.sendMessage(VAR.Header + ChatColor.RED + "False amount of Arguments!");
-								sender.sendMessage(ChatColor.BLUE+"/pman set fire <player> <time>");
+								} else { falseArg(sender,"pman set fire ?");}
+							} else { denied(sender);}
+							return true;
+						}
+						//Set the weather
+						if (args[1].equalsIgnoreCase("weather")){
+							if (sender.hasPermission("pman.set.weather") || sender.isOp()){
+								String world = "";
+								if (sender instanceof Player){
+									//Really annoying part of the code to get the world to set the weather in
+									if (args.length == 3 || args.length == 4){
+										if (args[2].equalsIgnoreCase("?")){
+											sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+											sender.sendMessage(gold +"Command: "+green+"/pman set weather <storm|rain|sun> [world]");
+											sender.sendMessage(gold +"Aliases: "+green+"None");
+											sender.sendMessage(gold +"Permission: "+green+"pman.set.weather");
+											sender.sendMessage(aqua +"Sets the weather in the world you're currently in.");
+											sender.sendMessage(aqua +"To set the weather of an other world, just specify its name.");
+											return true;
+										}
+										if (args.length == 4){
+											World w = Bukkit.getServer().getWorld(args[3]);
+											if (w == null){
+												sender.sendMessage(ChatColor.RED+"Could not find the world '"+args[3]+"'");
+												return true;
+											}
+											world = w.getName();
+										} else
+											world = Bukkit.getServer().getPlayer(sender.getName()).getWorld().getName();
+									} else { falseArg(sender, "pman set weather ?");
+										return true;
+									}
+								} else {
+									if (args.length == 4){
+										World w = Bukkit.getServer().getWorld(args[3]);
+										if (w == null){
+											sender.sendMessage(ChatColor.RED+"Could not find the world '"+args[3]+"'");
+											return true;
+										}
+										world = w.getName();
+									} else { falseArg(sender,"pman set weather ?");
+										return true;
+									}
+								}
+								//Code to set the weather
+								if (args[2].equalsIgnoreCase("sun")){
+									Bukkit.getServer().getWorld(world).setThundering(false);
+									Bukkit.getServer().getWorld(world).setStorm(false);
+									sender.sendMessage(ChatColor.GOLD+"Sunshine is lightening up your face...");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader+sender.getName()+" changed the weather to sunshine.");
+								}
+								if (args[2].equalsIgnoreCase("rain")){
+									Bukkit.getServer().getWorld(world).setThundering(false);
+									Bukkit.getServer().getWorld(world).setStorm(true);
+									sender.sendMessage(ChatColor.AQUA+"You can smell the rain...");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader+sender.getName()+" changed the weather to rain.");
+								}
+								if (args[2].equalsIgnoreCase("storm") || args[2].equalsIgnoreCase("thunder")){
+									Bukkit.getServer().getWorld(world).setStorm(true);
+									Bukkit.getServer().getWorld(world).setThundering(true);
+									Bukkit.getServer().getWorld(world).setThunderDuration(24000);
+									sender.sendMessage(ChatColor.DARK_GRAY+"You can hear the growling thunder...");
+									if (VAR.logit)
+										VAR.log.info(VAR.logHeader+sender.getName()+" changed the weather to thunderstorm.");
 								}
 							} else denied(sender);
-						}
-						if (found)
 							return true;
-						sender.sendMessage(VAR.Header + ChatColor.RED + "Your arguments have not been recognized.");
-						sender.sendMessage(VAR.Header + ChatColor.RED + "Type /pman for more information.");
-					} else { denied(sender);}
+						}
+						sender.sendMessage(gold + "---------------" + green + " PlayerManager " + gold + "---------------");
+						sender.sendMessage(gold + "/pman set fly <player> <allow|deny>");
+						sender.sendMessage(gold + "/pman set fire <player> <time>");
+						sender.sendMessage(gold + "/pman set food <player> <amount|full|empty>");
+						sender.sendMessage(gold + "/pman set health <player> <amount|full>");
+						sender.sendMessage(gold + "/pman set name <player> <name|reset>");
+						sender.sendMessage(gold + "/pman set weather <storm|rain|sun> [world]");
+						sender.sendMessage(gold + "/pman set xp <player> <level>");
+						sender.sendMessage(ChatColor.LIGHT_PURPLE + "Add '?' behind a command to see more about it.");
+						return true;
 				}
 				//Set /acceptrules SpawnPoint
 				if (args[0].equalsIgnoreCase("srtp")){
 					if (sender.hasPermission("pman.rulestp") || sender.isOp()){
+						if (args.length == 2 && args[1].equalsIgnoreCase("?")){
+							sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+							sender.sendMessage(gold +"Command: "+green+"/pman srtp");
+							sender.sendMessage(gold +"Aliases: "+green+"None");
+							sender.sendMessage(gold +"Permission: "+green+"pman.rulestp");
+							sender.sendMessage(aqua +"Sets the rules teleportation point. Players who accept");
+							sender.sendMessage(aqua +"the server rules for the first time will be teleported there.");
+							return true;
+						}
 						if (sender instanceof Player){
 							try{
 								checkConfig();
@@ -629,8 +1023,148 @@ public class PMan_main extends JavaPlugin {
 					} else denied(sender);
 					return true;
 				}
-				sender.sendMessage(VAR.Header + ChatColor.RED +"False amount of arguments! Type /pman for help.");
-		}return true;
+		}
+		if (cmd.getName().equalsIgnoreCase("fakeop")){
+			if (sender.hasPermission("pman.fakeop") && !VAR.pLog.getList("FakeOps").toString().contains(sender.getName())){
+				if (args.length == 1){
+					if (args[0].equalsIgnoreCase("?")){
+						sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+						sender.sendMessage(gold +"Command: "+green+"/fakeop <player>");
+						sender.sendMessage(gold +"Aliases: "+green+"None");
+						sender.sendMessage(gold +"Permission: "+green+"pman.fakeop");
+						sender.sendMessage(aqua +"Fake-ops a player. For all those people asking for op status.");
+						return true;
+					}
+					Player p = checkPlayer(args[0]);
+					if (p == null){
+						notFound(sender, args[0]);
+						return true;
+					}
+					try{
+						@SuppressWarnings("rawtypes")
+						List list = new ArrayList();
+						list = VAR.pLog.getList("FakeOps");
+						if (list != null && list.contains(p.getName())){
+							sender.sendMessage(ChatColor.YELLOW+"The player "+p.getName()+" already is a faked op!");
+							return true;
+						}
+						if (list == null || list.isEmpty()){
+							list = Arrays.asList(p.getName());
+						} else{
+							list.add(p.getName());
+						}
+						VAR.pLog.set("FakeOps", list);
+						
+						VAR.pLog.save(VAR.f_player);
+						VAR.pLog.load(VAR.f_player);
+					} catch(Exception ex){
+						ex.printStackTrace();
+					}
+					sender.sendMessage(green+p.getName()+" is now a fakeOp.");
+					p.sendMessage(ip.replace(VAR.config.getString("fakeOpYes"),p));
+					if (VAR.logit)
+						VAR.log.info(VAR.logHeader+sender.getName()+" has fake-opped "+p.getName());
+				} else{ falseArg(sender,"fakeop ?");}
+			} else{ sender.sendMessage(ip.replace(VAR.config.getString("fakeOpNoPerm"),Bukkit.getServer().getPlayer(sender.getName())));}
+			return true;
+		}
+		if (cmd.getName().equalsIgnoreCase("fakedeop")){
+			if (sender.hasPermission("pman.fakedeop") && !VAR.pLog.getList("FakeOps").toString().contains(sender.getName())){
+				if (args.length == 1){
+					if (args[0].equalsIgnoreCase("?")){
+						sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+						sender.sendMessage(gold +"Command: "+green+"/fakedeop <player>");
+						sender.sendMessage(gold +"Aliases: "+green+"None");
+						sender.sendMessage(gold +"Permission: "+green+"pman.fakedeop");
+						sender.sendMessage(aqua +"Turns a fakeop into a normal player.");
+						return true;
+					}
+					Player p = checkPlayer(args[0]);
+					if (p == null){
+						notFound(sender, args[0]);
+						return true;
+					}
+					try{
+						@SuppressWarnings("rawtypes")
+						List list = new ArrayList();
+						list = VAR.pLog.getList("FakeOps");
+						if (list == null || !list.contains(p.getName())){
+							sender.sendMessage(ChatColor.YELLOW+"The player "+p.getName()+" is not a faked op!");
+							return true;
+						}
+						list.remove(p.getName());
+						VAR.pLog.set("FakeOps", list);
+						
+						VAR.pLog.save(VAR.f_player);
+						VAR.pLog.load(VAR.f_player);
+					} catch(Exception ex){
+						ex.printStackTrace();
+					}
+					sender.sendMessage(green+p.getName()+" is now a normal player.");
+					p.sendMessage(ip.replace(VAR.config.getString("fakeOpNo"),p));
+					if (VAR.logit)
+						VAR.log.info(VAR.logHeader+sender.getName()+" has fake-deopped "+p.getName());
+				} else{ falseArg(sender,"fakedeop ?");}
+			} else{ sender.sendMessage(ip.replace(VAR.config.getString("fakeOpNoPerm"),Bukkit.getServer().getPlayer(sender.getName())));}
+			return true;
+		}
+		if (cmd.getName().equalsIgnoreCase("fakelist") || cmd.getName().equalsIgnoreCase("oplist")){
+			if (sender.hasPermission("pman.fakelist") && !VAR.pLog.getList("FakeOps").toString().contains(sender.getName())){
+				if (args.length >= 1){
+					sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+					sender.sendMessage(gold +"Command: "+green+"/fakelist");
+					sender.sendMessage(gold +"Aliases: "+green+"oplist");
+					sender.sendMessage(gold +"Permission: "+green+"pman.fakelist");
+					sender.sendMessage(aqua +"Lists all ops & fakeops and their online status.");
+					return true;
+				}
+				@SuppressWarnings("rawtypes")
+				List LIST = new ArrayList();
+				String list = "";
+				String[] l = {""};
+				if (VAR.pLog.isSet("FakeOps"))
+					LIST = VAR.pLog.getList("FakeOps");
+				if (LIST != null){
+					list = LIST.toString();
+					list = list.replace("[", "").replace("]", "");
+					l = list.split(", ");
+				}
+				int i = 0;
+				list = "";
+				while(i < l.length){
+					list = list + getColor(l[i]) + l[i] +ChatColor.DARK_PURPLE+"[FakeOP]";
+					if (i != (l.length - 1))
+						list = list + ChatColor.WHITE + ", ";
+					i++;
+				}
+				sender.sendMessage(darkgreen+"--------------- List of all (fake)Ops ---------------");
+				sender.sendMessage(green+"Green "+gold+"people are online, "+ChatColor.RED+"red"+gold+" people are offline.");
+				if (!list.equalsIgnoreCase("") && !list.equalsIgnoreCase(ChatColor.RED+""+ChatColor.DARK_PURPLE+"[FakeOP]"))
+					sender.sendMessage(list);
+				else
+					sender.sendMessage(ChatColor.GRAY+"[There are no fake-ops]");
+				
+				list = Bukkit.getServer().getOperators().toString();
+				i = 0;
+				l = list.split(",");
+				list = "";
+				while(i < l.length){
+					l[i] = l[i].split("name=")[1].split("}")[0];
+					if (checkPlayer(l[i]) != null)
+						l[i] = checkPlayer(l[i]).getName();
+					list = list + getColor(l[i]) + l[i] +ChatColor.BLUE+"[OP]";
+					if (i != (l.length - 1))
+						list = list + ChatColor.WHITE + ", ";
+					i++;
+				}
+				if (!list.equalsIgnoreCase("") && !list.equalsIgnoreCase(ChatColor.RED+""+ChatColor.BLUE+"[OP]"))
+					sender.sendMessage(list);
+				else
+					sender.sendMessage(ChatColor.GRAY+"[There are no ops]");
+			} else{ sender.sendMessage(ip.replace(VAR.config.getString("fakeOpNoPerm"),Bukkit.getServer().getPlayer(sender.getName())));}
+			return true;
+		}
+		return true;
 		
 	}
 	public void checkConfig(){
@@ -657,18 +1191,42 @@ public class PMan_main extends JavaPlugin {
 	void denied(CommandSender sender){
 		sender.sendMessage(VAR.Header + ChatColor.RED + "You don't have permission to use that command.");
 	}
-	void notFound(CommandSender sender){
-		sender.sendMessage(VAR.Header + ChatColor.RED + "Could not find the specified player.");
+	void falseArg(CommandSender sender, String cmd){
+		getServer().dispatchCommand(sender, cmd);
+	}
+	void notFound(CommandSender sender, String str){
+		sender.sendMessage(VAR.Header + ChatColor.RED + "Could not find player \""+str+"\".");
+	}
+	ChatColor getColor(String str){
+		if (Bukkit.getServer().getPlayerExact(str) == null){
+			return ChatColor.RED;
+		} else {
+			return ChatColor.GREEN;
+		}
 	}
 	public void update(){
-		Boolean logConsole = VAR.config.getBoolean("logToConsole");
+		// I haven't found any other way than creating soooo many variables yet. I'm sorry :(
+		Boolean CU = VAR.config.getBoolean("CheckUpdate", true);
+		Boolean logConsole = VAR.config.getBoolean("logToConsole", true);
 		String reset = VAR.config.getString("reset", "Fly;Hidden");
 		Boolean cJQ = VAR.config.getBoolean("customJQ", true);
 		String jmsg = VAR.config.getString("joinMsg", "&aHello %NAME!");
 		String jmsgO = VAR.config.getString("joinMsgOther", "&bPlayer &e%NAME &b(&c%IP&b) has connected.");
 		String qmsg = VAR.config.getString("quitMsg", "&e%NAME has left the game.");
 		String mmsg = VAR.config.getString("mutedMsg", "&cYou have been muted.");
-		String order = VAR.config.getString("order", "Name;IP;World;Xp;Muted");
+		String order = VAR.config.getString("order", "Name;FistLogin;PlayedTime;IP;World;Xp;Muted");
+		String fakeOPNP = VAR.config.getString("fakeOpNoPerm", "&fUnknown command. Type \"help\" for help.");
+		String fakeOPY = VAR.config.getString("fakeOpYes", "&eYou are now op!");
+		String fakeOPN = VAR.config.getString("fakeOpNo", "&eYou are no longer op!");
+		String fakeOPA = VAR.config.getString("fakeOpAnnoy", "DontKnow;GoHelp['You are op. Go and help someone!']");
+		String fl = "";
+		if (VAR.config.isSet("fakeList")){
+			fl = VAR.config.getList("fakeList").toString();
+			fl = fl.replace("[", "").replace("]", "").replace(" ", "");
+			if (fl.equalsIgnoreCase(""))
+				fl = "/help,/plugins,/version,/rules";
+		} else {fl = "/help,/plugins,/version,/rules";}
+		String[] FL = fl.split(",");
 		Boolean eRule = VAR.config.getBoolean("enableRules", true);
 		String REXCMD = VAR.config.getString("RulesExCmd", "give %NAME stone_sword 1|say WELCOME %NAME TO THE SERVER!");
 		String rRules = "";
@@ -704,6 +1262,8 @@ public class PMan_main extends JavaPlugin {
 		double RTPP = VAR.config.getDouble("RulesTpPitch", 0.0);
 		double RTPYaw = VAR.config.getDouble("RulesTpYaw", 0.0);
 		Boolean RepEn = VAR.config.getBoolean("EnableReport", true);
+		int RepCMD = VAR.config.getInt("ReportCmd", 3);
+		String RepEXCMD = VAR.config.getString("ReportEXCmd", "say %NAME watch out what you are doing... you have been reported three times.");
 		int RKick = VAR.config.getInt("ReportKick", 5);
 		String RKickMsg = VAR.config.getString("ReportKickMsg", "You have been reported too often. You should behave better.");
 		int RBan = VAR.config.getInt("ReportBan", 7);
@@ -711,6 +1271,13 @@ public class PMan_main extends JavaPlugin {
 		String RBanMeth = VAR.config.getString("ReportBanMethod", "ip");
 		int RCD = VAR.config.getInt("ReportCoolDown", 30);
 		String RCDMsg = VAR.config.getString("ReportCoolDownMsg", "&6This command is not ready yet!");
+		Boolean Cenable = VAR.config.getBoolean("EnableCensor", true);
+		String Cwords;
+		if (VAR.config.isSet("CensorWords"))
+			Cwords = VAR.config.getList("CensorWords").toString();
+		else
+			Cwords = "[fuck, shit, bitch]";
+		String Cchar = VAR.config.getString("CensorChar", "*");
 		Boolean bBlock = VAR.config.getBoolean("enableBotBlock", false);
 		Boolean logDouble = VAR.config.getBoolean("logDuplicatedIps", false);
 		String punish = VAR.config.getString("punishment", "kick");
@@ -729,14 +1296,21 @@ public class PMan_main extends JavaPlugin {
 			out.write("# &5 - Dark Purple    &b - Aqua          &italic - Italic\n");
 			out.write("# &strike - Striked   &under - Underline &magic - Magic       &reset - Reset\n");
 			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS\n");
-			out.write("# %ONLINELIST  - %SERVERNAME\n\n\n\n");
+			out.write("# %ONLINELIST  - %SERVERNAME\n\n");
+			
+			out.write("########## Important Rule for the config.yml! ##########\n");
+			out.write("# Whenever there is a configurable message sent to someone, surround that part with these! ' '\n");
+			out.write("########## Important Rule for the config.yml! ##########\n\n\n\n");
 			
 			
 			
 			out.write("# Enable the plugin?\n");
 			out.write("enable: true\n");
+			out.write("# Automatically check for updates?\n");
+			out.write("CheckUpdate: "+CU+"\n");
 			out.write("# Log usage of commands to console?\n");
-			out.write("logToConsole: "+logConsole+"\n");
+			out.write("logToConsole: "+logConsole+"\n\n");
+			
 			out.write("# Do you want player modifications (name,allowFly,...) to be reset\n");
 			out.write("# when the player logs out and back in? Separate with ';'\n");
 			out.write("# All modifications not specified here will be re-enabled, depending on the information in the PlayerLog.yml file.\n");
@@ -750,19 +1324,21 @@ public class PMan_main extends JavaPlugin {
 			
 			out.write("# Do you want custom join/quit messages?\n");
 			out.write("customJQ: "+cJQ+"\n");
-			out.write("# Set your join message here. MUST BE SURROUNDED BY '\n");
+			out.write("# Set your join message here.\n");
 			out.write("joinMsg: '"+jmsg.trim()+"'\n");
-			out.write("# This is the message other players will see. MUST BE SURROUNDED BY '\n");
+			out.write("# This is the message other players will see.\n");
 			out.write("joinMsgOther: '"+jmsgO.trim()+"'\n");
-			out.write("# The quit message when somebody leaves your server. MUST BE SURROUNDED BY '\n");
+			out.write("# The quit message when somebody leaves your server.\n");
 			out.write("quitMsg: '"+qmsg.trim()+"'\n");
-			out.write("# The message a muted player is shown when he tries to chat. MUST BE SURROUNDED BY '\n");
+			out.write("# The message a muted player is shown when he tries to chat.\n");
 			out.write("mutedMsg: '"+mmsg.trim()+"'\n\n\n");
 			
 			
 			out.write("# Define the order of the information shown on /pinfo here. Separate the words with ';'\n");
 			out.write("# Name: The player's name\n");
+			out.write("# PlayedTime: The time the player has been playing on your server.\n");
 			out.write("# IP: The player's IP address\n");
+			out.write("# FirstLogin: The date and time the player has been seen for the first time.\n");
 			out.write("# LastLogin: The date and time the player has joined the last time.\n");
 			out.write("# LastLogout: The date and time the player has left the last time.\n");
 			out.write("# Money: The amount of money a player has. Vault is REQUIRED.\n");
@@ -778,8 +1354,32 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Hidden: Whether the player is hidden or not.\n");
 			out.write("# Muted: Whether the player is muted or not.\n");
 			out.write("# Rules: Whether the player has read and accepted the rules or not.\n");
-			out.write("# Example: Name;IP;World;Xp;Muted\n");
+			out.write("# Example: Name;FirstLogin;PlayedTime;IP;World;Xp;Muted\n");
 			out.write("order: "+order+"\n\n\n");
+			
+			
+			out.write("# Players who are fakeops themselves or do not have permission to use\n");
+			out.write("# the fakeop-related commands trying to use them will receive this message.\n");
+			out.write("fakeOpNoPerm: '"+fakeOPNP+"'\n");
+			out.write("# This message is sent to people who get fake-opped.\n");
+			out.write("fakeOpYes: '"+fakeOPY+"'\n");
+			out.write("# This message is sent to people who lose the fakeop status.\n");
+			out.write("fakeOpNo: '"+fakeOPN+"'\n");
+			out.write("# This is what happens when a fakeop tries to do something. \n");
+			out.write("# Broadcast: Instead of executing a command, it is sent to the chat. Everyone can see it except the fakeop. If you want to use a white- or blacklist, put [Whitelist] or [Blacklist] behind Broadcast!\n");
+			out.write("# DontKnow: No matter what command he types, he will always receive \"Unknown command. Type \"help\" for help.\"\n");
+			out.write("# GoHelp[]: If he tries to break a block, he will be sent the message between the square brackets and the block will reappear.\n");
+			out.write("# Mute: The fakeop will be muted, but he won't know... He's going to think that everyone's ignoring him! PlayerManager needs the Chat-Prefix in curly brackets.\n");
+			out.write("# Example: Broadcast[Whitelist];GoHelp['&cYou are op! Now go help someone!'];Mute{'<&2[Member]&f %NAME> '}\n");
+			out.write("fakeOpAnnoy: "+fakeOPA+"\n");
+			out.write("# This is the Broadcast white/blacklist. All commands listed here WILL NOT be sent (whitelist) or WILL be sent (blacklist) to the chat instead of being executed.\n");
+			out.write("fakeList:\n");
+			i = 0;
+			while (i < FL.length){
+				out.write("    - "+FL[i]+"\n");
+				i++;
+			}
+			out.write("\n\n");
 			
 			
 			out.write("# Should the /rules and /acceptrules commands be enabled?\n");
@@ -792,7 +1392,6 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Write your rules here. It does not matter how long they are, just make sure to\n");
 			out.write("# always increase the Rules[number] by one. You can have Rules1 - Rules5832, but not Rules2 - Rules4!\n");
 			out.write("# Each of those Rules[number] will be written on a new line.\n");
-			out.write("# It's higly recommended to surround them with '\n");
 			i = 0;
 			while (i < outRules.length){
 				out.write("Rules"+(i+1)+": '" + outRules[i].trim() +"'\n");
@@ -841,6 +1440,11 @@ public class PMan_main extends JavaPlugin {
 			
 			out.write("# Enable the /report and /check commands?\n");
 			out.write("EnableReport: "+RepEn+"\n");
+			out.write("# After how many /reports do you want configurable commands to be executed? -1 disables.\n");
+			out.write("ReportCmd: "+RepCMD+"\n");
+			out.write("# What commands should be executed? Separate them using |, %VARIABLE are allowed to be used.\n");
+			out.write("# Example: 'say %NAME watch out what you are doing...|pman set weather storm'\n");
+			out.write("ReportEXCmd: '"+RepEXCMD+"'\n");
 			out.write("# After how many /reports do you want the player to be kicked? -1 disables.\n");
 			out.write("ReportKick: "+RKick+"\n");
 			out.write("# The message a kicked player will be shown. Do not use any variables.\n");
@@ -855,6 +1459,23 @@ public class PMan_main extends JavaPlugin {
 			out.write("ReportCoolDown: "+RCD+"\n");
 			out.write("# The message a player will be shown when he tries to use the command but the cooldown has not finished yet.\n");
 			out.write("ReportCoolDownMsg: '"+RCDMsg+"'\n\n\n");
+			
+			
+			out.write("# Enable the censorship of bad words?\n");
+			out.write("EnableCensor: "+Cenable+"\n");
+			out.write("# Which words shall be censored? Only use lowercases!\n");
+			out.write("CensorWords:\n");
+			Cwords = Cwords.replace("[", "").replace("]", "").replace(" ", "");
+			String[] words = Cwords.split(",");
+			if (words.length != 0){
+				int w = 0;
+				while (w < words.length){
+					out.write("    - "+words[w]+"\n");
+					w++;
+				}
+			}
+			out.write("# Select the character with which the bad words shall be replaced.\n");
+			out.write("CensorChar: '"+Cchar+"'\n\n\n");
 			
 			
 			out.write("# Should BotBlocking be enabled?\n");
@@ -900,6 +1521,12 @@ public class PMan_main extends JavaPlugin {
 	}
 	public Player checkPlayer(String str){
 		Player p = Bukkit.getServer().getPlayer(str);
+		if (p == null){
+			for(Player p2: Bukkit.getServer().getOnlinePlayers()){
+				if (str.equalsIgnoreCase(p2.getDisplayName().replace("~", "")))
+					p = p2;
+			}
+		}
 		return p;
 	}
 	public void loadPlayerLog() throws Exception{
@@ -929,7 +1556,7 @@ public class PMan_main extends JavaPlugin {
 						if (!version.equalsIgnoreCase("v"+thisVersion)){
 							VAR.log.info("");
 							VAR.log.info("------------- Found an update for PlayerManager -------------");
-							VAR.log.info("Please go to http://dev.bukkit.org/server-mods/playermanager/");
+							VAR.log.info("Please visit http://dev.bukkit.org/server-mods/playermanager/");
 							VAR.log.info("and download "+version+". You are running v"+thisVersion+".");
 							VAR.log.info("-------------------------------------------------------------");
 							VAR.log.info("");
@@ -963,5 +1590,13 @@ public class PMan_main extends JavaPlugin {
 
         return (VAR.economy != null);
     }
+	private boolean setupChat()
+	{
+		RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+		if (chatProvider != null) {
+			VAR.chat = chatProvider.getProvider();
+		}
+		
+		return (VAR.chat != null);
+	}
 }
-

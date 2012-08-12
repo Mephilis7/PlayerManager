@@ -1,9 +1,22 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.7
+version: 1.8
 author: Mephilis7
 softdepend: [Vault]
 commands:
+  fakeop:
+    description: Fake-op a player.
+    usage: <command> {player}
+    permission: pman.fakeop
+  fakedeop:
+    description: Remove fakeop status from a player.
+    usage: <command> {player}
+    permission: pman.fakedeop
+  fakelist:
+    description: List all (fake-)opped players.
+    aliases: oplist
+    usage: <command>
+    permission: pman.fakelist
   report:
     description: Report a player to the Admins.
     usage: <command> {player}
@@ -32,6 +45,30 @@ commands:
     description: Helps you managing your players.
     usage: 'Type /pman for help.'
 permissions:
+  pman.censor.add:
+    description: Allows usage of /pman censor add
+    default: op
+  pman.censor.delete:
+    description: Allows usage of /pman censor delete
+    default: op
+  pman.censor.disable:
+    description: Allows usage of /pman censor disable
+    default: op
+  pman.censor.enable:
+    description: Allows usage of /pman censor enable
+    default: op
+  pman.censor.list:
+    description: Allows usage of /pman censor list
+    default: op
+  pman.fakeop:
+    description: Allows usage of /fakeop
+    default: op
+  pman.fakedeop:
+    description: Allows usage of /fakedeop
+    default: op
+  pman.fakelist:
+    description: Allows usage of /fakelist
+    default: op
   pman.help:
     description: Allows usage of /pman
     default: op
@@ -44,8 +81,14 @@ permissions:
   pman.info.name:
     description: Allows showing Name on /pman info
     default: op
+  pman.info.time:
+    description: Allows showin played time on /pman info
+    default: op
   pman.info.ip:
     description: Allows showing IP address on /pman info
+    default: op
+  pman.info.firstLogin:
+    description: Allows showing the first login on /pman info
     default: op
   pman.info.lastLogin:
     description: Allows showing the last login on /pman info
@@ -104,9 +147,6 @@ permissions:
   pman.rulestp:
     description: Allows usage of /pman srtp
     default: op
-  pman.set:
-    description: Allows usage of /pman set
-    default: op
   pman.set.fly:
     description: Allows setting of AllowFlight
     default: op
@@ -118,6 +158,9 @@ permissions:
     default: op
   pman.set.name:
     description: Allows setting of name
+    default: op
+  pman.set.weather:
+    description: Allows setting of the weather.
     default: op
   pman.set.xp:
     description: Allows setting of xp level
@@ -139,4 +182,7 @@ permissions:
     default: op
   pman.update:
     description: Notifies when joining the server and an update is out.
+    default: op
+  pman.view:
+    description: Allows to you view hidden players.
     default: op

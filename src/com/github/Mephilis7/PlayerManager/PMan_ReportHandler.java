@@ -16,6 +16,20 @@ import org.bukkit.entity.Player;
 
 public class PMan_ReportHandler implements CommandExecutor{
 	
+	/* Copyright 2012 Mephilis7
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 * 
+	 *     http://www.apache.org/licenses/LICENSE-2.0
+	 *     
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 */
+	
 	private PMan_main plugin;
 	public PMan_ReportHandler(PMan_main plugin){
 		this.plugin = plugin;
@@ -29,6 +43,15 @@ public class PMan_ReportHandler implements CommandExecutor{
 		// Defining the command /report
 		if (cmd.getName().equalsIgnoreCase("report")){
 			if (sender.hasPermission("pman.report") || sender.isOp()){
+				if (args.length == 1 && args[0].equalsIgnoreCase("?")){
+					sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+					sender.sendMessage(ChatColor.GOLD +"Command: "+ChatColor.GREEN+"/report <player> <reason>");
+					sender.sendMessage(ChatColor.GOLD +"Aliases: "+ChatColor.GREEN+"None");
+					sender.sendMessage(ChatColor.GOLD +"Permission: "+ChatColor.GREEN+"pman.report");
+					sender.sendMessage(ChatColor.AQUA +"Report a player to the Admins/Mods.");
+					sender.sendMessage(ChatColor.AQUA +"A reason is REQUIRED. Cooldown is "+VAR.config.getString("ReportCoolDown")+" seconds.");
+					return true;
+				}
 				if (args.length > 1){
 					//Cache file. Allows me to set the cooldown for the command.
 					try{
@@ -53,7 +76,8 @@ public class PMan_ReportHandler implements CommandExecutor{
 								input = in;
 								if ((getSeconds(getDate()) - Integer.parseInt(input)) < VAR.config.getInt("ReportCoolDown")){
 									String msg = VAR.config.getString("ReportCoolDownMsg");
-									msg = replace(msg, sender);
+									msg = msg.replace("%NAME", sender.getName());
+									msg = replaceColours(msg);
 									sender.sendMessage(msg);
 									return true;
 								}
@@ -147,9 +171,19 @@ public class PMan_ReportHandler implements CommandExecutor{
 						String msg = VAR.config.getString("ReportKickMsg");
 						p.kickPlayer(msg);
 					}
-				} else { 
-					sender.sendMessage(VAR.Header + ChatColor.RED + "Not enough Arguments!");
-					sender.sendMessage(ChatColor.BLUE + "/report <player> <reason>");
+					//Execute the commands specified in the config.yml if the player has been reported too often.
+					if (i == VAR.config.getInt("ReportCmd")){
+						String cCmd = VAR.config.getString("ReportEXCmd").trim();
+						cCmd = replace(cCmd, p);
+						String[] ExCmd = cCmd.split("|");
+						int r = 0;
+						while (r < ExCmd.length){
+							Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), ExCmd[r]);
+							r++;
+						}
+					}
+				} else {
+					Bukkit.getServer().dispatchCommand(sender,"report ?");
 				}
 			} else {this.plugin.denied(sender);}
 		}
@@ -157,6 +191,15 @@ public class PMan_ReportHandler implements CommandExecutor{
 		if (cmd.getName().equalsIgnoreCase("check")){
 			if (sender.hasPermission("pman.check") || sender.isOp()){
 				if (args.length == 1 || args.length == 2){
+					if (args[0].equalsIgnoreCase("?")){
+						sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+						sender.sendMessage(ChatColor.GOLD +"Command: "+ChatColor.GREEN+"/check <player> [Report Number]");
+						sender.sendMessage(ChatColor.GOLD +"Aliases: "+ChatColor.GREEN+"None");
+						sender.sendMessage(ChatColor.GOLD +"Permission: "+ChatColor.GREEN+"pman.check");
+						sender.sendMessage(ChatColor.AQUA +"Check the report status of a player");
+						sender.sendMessage(ChatColor.AQUA +"or one of his reports.");
+						return true;
+					}
 					//Again, checking whether the player is online.
 					Player p = this.plugin.checkPlayer(args[0]);
 					if (p == null){
@@ -192,8 +235,7 @@ public class PMan_ReportHandler implements CommandExecutor{
 						sender.sendMessage(ChatColor.GOLD+"--------------------------------------------------");
 					}
 				} else {
-					sender.sendMessage(VAR.Header+ChatColor.RED + "False amount of Arguments!");
-					sender.sendMessage(ChatColor.BLUE + "/check <player> [Report Number]");
+					Bukkit.getServer().dispatchCommand(sender,"check ?");
 				}
 			} else {this.plugin.denied(sender);}
 		}
@@ -202,6 +244,15 @@ public class PMan_ReportHandler implements CommandExecutor{
 			if (sender.hasPermission("pman.checktp") || sender.isOp()){
 				if (sender instanceof Player){
 					if (args.length == 1 || args.length == 2){
+						if (args[0].equalsIgnoreCase("?") || (args.length == 2 && args[1].equalsIgnoreCase("?"))){
+							sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+							sender.sendMessage(ChatColor.GOLD +"Command: "+ChatColor.GREEN+"/checktp <player> [Report Number]");
+							sender.sendMessage(ChatColor.GOLD +"Aliases: "+ChatColor.GREEN+"None");
+							sender.sendMessage(ChatColor.GOLD +"Permission: "+ChatColor.GREEN+"pman.checktp");
+							sender.sendMessage(ChatColor.AQUA +"Teleports you to the location where the reported player");
+							sender.sendMessage(ChatColor.AQUA +"had been when he got reported.");
+							return true;
+						}
 						//And once more... Is the player online?
 						Player p = this.plugin.checkPlayer(args[0]);
 						if (p == null){
@@ -239,8 +290,7 @@ public class PMan_ReportHandler implements CommandExecutor{
 							}
 						}
 					} else {
-						sender.sendMessage(VAR.Header+ChatColor.RED + "False amount of Arguments!");
-						sender.sendMessage(ChatColor.BLUE + "/checktp <player> [Report Number]");
+						Bukkit.getServer().dispatchCommand(sender,"checktp ?");
 					}
 				} else { sender.sendMessage(ChatColor.RED+"Sorry, but you have to be a player to execute this command.");}
 			} else { this.plugin.denied(sender);}
@@ -248,14 +298,22 @@ public class PMan_ReportHandler implements CommandExecutor{
 		//Delete the report of a player
 		if (cmd.getName().equalsIgnoreCase("apologise")){
 			if (sender.hasPermission("pman.apologise") || sender.isOp()){
+				if (args.length == 1 && args[0].equalsIgnoreCase("?")){
+					sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+					sender.sendMessage(ChatColor.GOLD +"Command: "+ChatColor.GREEN+"/apologise <player> <ReportNumber|all>");
+					sender.sendMessage(ChatColor.GOLD +"Aliases: "+ChatColor.GREEN+"None");
+					sender.sendMessage(ChatColor.GOLD +"Permission: "+ChatColor.GREEN+"pman.apologise");
+					sender.sendMessage(ChatColor.AQUA +"Deletes one or all report(s) of a player.");
+					return true;
+				}
 				if (args.length == 2){
 					Player p = this.plugin.checkPlayer(args[0]);
 					if (p == null){
-						this.plugin.notFound(sender);
+						this.plugin.notFound(sender, args[0]);
 						return true;
 					}
 					//Delete all reports
-					if (args[1].equalsIgnoreCase("all")){
+					if (args[1].equalsIgnoreCase("all") || args[1].equalsIgnoreCase("*")){
 						try{
 							VAR.pLog.set("Reports."+p.getName(), null);
 							VAR.pLog.save(VAR.f_player);
@@ -323,8 +381,7 @@ public class PMan_ReportHandler implements CommandExecutor{
 								VAR.log.info(VAR.logHeader+sender.getName()+" has forgiven "+p.getName()+" his "+i+getEnding(i)+" report.");
 					} else { sender.sendMessage(VAR.Header+ChatColor.RED+"A report with the number "+arg1+" does not exist for "+p.getName()+".");}
 				} else {
-					sender.sendMessage(VAR.Header+ChatColor.RED+"False amount of Arguments!");
-					sender.sendMessage(ChatColor.BLUE + "/apologise <player> <ReportNumber|all>");
+					Bukkit.getServer().dispatchCommand(sender,"/apologise <player> <ReportNumber|all>");
 				}
 			} else { this.plugin.denied(sender);}
 		}
@@ -335,11 +392,28 @@ public class PMan_ReportHandler implements CommandExecutor{
 		sender.sendMessage(ChatColor.GOLD+"------------------" + ChatColor.GREEN + " PlayerManager " + ChatColor.GOLD + "-----------------");
 		sender.sendMessage(ChatColor.DARK_GREEN+"Name: "+ChatColor.AQUA+p.getName());
 		sender.sendMessage(ChatColor.DARK_GREEN+"Reported: "+ChatColor.AQUA+i+" times");
+		sender.sendMessage(ChatColor.DARK_GREEN+"Report Status: "+getStatus(i));
 		sender.sendMessage(ChatColor.DARK_GREEN+"Last Reported: "+ChatColor.AQUA+"["+VAR.pLog.getString(path+".Number "+i+".Date and Time")+"]");
 		sender.sendMessage(" ");
 		sender.sendMessage(ChatColor.DARK_GRAY+"To view more information about a report,");
 		sender.sendMessage(ChatColor.DARK_GRAY+"type "+ChatColor.GRAY+"/check "+p.getName()+" <Number>");
 		sender.sendMessage(ChatColor.GOLD+"--------------------------------------------------");
+	}
+	public static String getStatus(int i){
+		String str = "";
+		if (VAR.config.getInt("ReportBan") > 0){
+			if (i > VAR.config.getInt("ReportBan"))
+				str = ChatColor.DARK_RED + "BANNED!!";
+			if (i < VAR.config.getInt("ReportBan"))
+				str = ChatColor.RED + "DANGEROUS!";
+		}
+		if (VAR.config.getInt("ReportKick") > 0)
+			if (i < VAR.config.getInt("ReportKick"))
+				str = ChatColor.GOLD + "Threatening";
+		if (VAR.config.getInt("ReportCmd") > 0)
+			if (i < VAR.config.getInt("ReportCmd"))
+				str = ChatColor.GREEN + "Okay!";
+		return str;
 	}
 	public static String getDate(){
 	    Calendar c = Calendar.getInstance();
@@ -384,25 +458,23 @@ public class PMan_ReportHandler implements CommandExecutor{
 			a = a*(-1);
 		return a;
 	}
-	public String replace(String str, CommandSender sender){			
-		str = str.replace("%NAME", sender.getName());
-		if (!VAR.console){
-			str = str.replace("%IP", Bukkit.getServer().getPlayer(sender.getName()).getAddress().toString());
-			str = str.replace("%WORLD", Bukkit.getServer().getPlayer(sender.getName()).getWorld().getName());
-			str = str.replace("%GAMEMODE", Bukkit.getServer().getPlayer(sender.getName()).getGameMode().toString());
-		} else {
-			str = str.replace("%IP", Bukkit.getServer().getIp());
-			str = str.replace("%WORLD", "RealLife");
-			str = str.replace("%GAMEMODE", "GODMODE");
-		}
+	public String replace(String str, Player p){			
+		str = str.replace("%NAME", p.getName());
+		str = str.replace("%IP", Bukkit.getServer().getPlayer(p.getName()).getAddress().toString());
+		str = str.replace("%WORLD", Bukkit.getServer().getPlayer(p.getName()).getWorld().getName());
+		str = str.replace("%GAMEMODE", Bukkit.getServer().getPlayer(p.getName()).getGameMode().toString());
 		str = str.replace("%ONLINEPLAYERS", Integer.toString(Bukkit.getServer().getOnlinePlayers().length));
 		str = str.replace("%MAXPLAYERS", Integer.toString(Bukkit.getServer().getMaxPlayers()));
 		String s = "";
-		for (Player p: Bukkit.getServer().getOnlinePlayers()){
-			s = s + p.getDisplayName()+ ", ";
+		for (Player r: Bukkit.getServer().getOnlinePlayers()){
+			s = s + r.getDisplayName()+ ", ";
 		}
 		str = str.replace("%ONLINELIST", s);
 		str = str.replace("%SERVERNAME", Bukkit.getServer().getName());
+		replaceColours(str);
+		return str;
+	}
+	public String replaceColours(String str){
 		//Code below is taken from MCDocs
 		String[] Colours = { "&0", "&1", "&2", "&3", "&4", "&5", "&6", "&7", 
 			      "&8", "&9", "&a", "&b", "&c", "&d", "&e", "&f", "&bold", "&italic", "&strike", "&under", "&magic", "&reset"};
@@ -413,6 +485,7 @@ public class PMan_ReportHandler implements CommandExecutor{
 			if (str.contains(Colours[i]))
 				str = str.replace(Colours[i], cCode[i].toString());
 		}
+		//End of MCDocs code
 		return str;
 	}
 	public static String getEnding(int i){
@@ -425,6 +498,12 @@ public class PMan_ReportHandler implements CommandExecutor{
 			str = "rd";
 		if (i >= 4)
 			str = "th";
+		if (i == 21 || i == 31)
+			str = "st";
+		if (i == 22 || i == 32)
+			str = "nd";
+		if (i == 23 || i == 33)
+			str = "rd";
 		return str;
 	}
 }

@@ -12,6 +12,20 @@ import org.bukkit.entity.Player;
 
 public class PMan_CmdRules implements CommandExecutor{
 	
+	/* Copyright 2012 Mephilis7
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 * 
+	 *     http://www.apache.org/licenses/LICENSE-2.0
+	 *     
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 */
+	
 	private PMan_main plugin;
 	public PMan_CmdRules(PMan_main plugin){
 		this.plugin = plugin;
@@ -24,6 +38,14 @@ public class PMan_CmdRules implements CommandExecutor{
 		//Shows the rules
 		if (cmd.getName().equalsIgnoreCase("rules")){
 			if (sender.hasPermission("pman.rules")){
+				if (args.length >= 1){
+					sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+					sender.sendMessage(ChatColor.GOLD +"Command: "+ChatColor.GREEN+"/rules");
+					sender.sendMessage(ChatColor.GOLD +"Aliases: "+ChatColor.GREEN+"None");
+					sender.sendMessage(ChatColor.GOLD +"Permission: "+ChatColor.GREEN+"pman.rules");
+					sender.sendMessage(ChatColor.AQUA +"Shows the server rules.");
+					return true;
+				}
 				int i = 1;
 				String msg = "";
 				//While there's another rules message set in the config.yml, replace the color codes and send the result to sender.
@@ -50,6 +72,14 @@ public class PMan_CmdRules implements CommandExecutor{
 		//Command to accept the server rules
 		if (cmd.getName().equalsIgnoreCase("acceptrules")){
 			if (sender.hasPermission("pman.rules")){
+				if (args.length >= 1){
+					sender.sendMessage(ChatColor.DARK_AQUA+"---------- Command Help ----------");
+					sender.sendMessage(ChatColor.GOLD +"Command: "+ChatColor.GREEN+"/acceptrules");
+					sender.sendMessage(ChatColor.GOLD +"Aliases: "+ChatColor.GREEN+"None");
+					sender.sendMessage(ChatColor.GOLD +"Permission: "+ChatColor.GREEN+"pman.rules");
+					sender.sendMessage(ChatColor.AQUA +"Confirm that you've read the server rules and agree with them.");
+					return true;
+				}
 				if (!VAR.console){
 					//If the player has not read the rules yet.
 					if (VAR.pLog.getString("players."+sender.getName()+".Has accepted rules").equalsIgnoreCase("false")){
@@ -81,7 +111,7 @@ public class PMan_CmdRules implements CommandExecutor{
 						//Execute the commands specified in the config.yml
 						String AcceptCmd = VAR.config.getString("RulesExCmd").trim();
 						AcceptCmd = replace(AcceptCmd, sender);
-						String[] ExCmd = AcceptCmd.split(";");
+						String[] ExCmd = AcceptCmd.split("|");
 						int i = 0;
 						while (i < ExCmd.length){
 							Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), ExCmd[i]);
@@ -124,6 +154,7 @@ public class PMan_CmdRules implements CommandExecutor{
 			if (str.contains(Colours[i]))
 				str = str.replace(Colours[i], cCode[i].toString());
 		}
+		//End of MCDocs code
 		return str;
 	}
 }
