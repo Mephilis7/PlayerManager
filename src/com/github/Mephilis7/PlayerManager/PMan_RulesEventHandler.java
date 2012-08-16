@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -66,6 +67,8 @@ implements Listener{
 	public void onPlayerBlockInteract(PlayerInteractEvent event){
 		if (VAR.config.getBoolean("enableRules")){
 			if (!VAR.pLog.getString("players."+event.getPlayer().getName()+".Has accepted rules").equalsIgnoreCase("true")){
+				if (event.getAction().equals(Action.LEFT_CLICK_BLOCK))
+					return;
 				String msg = VAR.config.getString("RulesNotAcceptedMsg");
 				msg = ip.replace(msg, event.getPlayer());
 				if (VAR.config.getString("PreventNotAccepted").toLowerCase().contains("chest")){

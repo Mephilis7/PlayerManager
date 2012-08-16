@@ -1,6 +1,6 @@
 name: PlayerManager
 main: com.github.Mephilis7.PlayerManager.PMan_main
-version: 1.8
+version: 1.8.1
 author: Mephilis7
 softdepend: [Vault]
 commands:

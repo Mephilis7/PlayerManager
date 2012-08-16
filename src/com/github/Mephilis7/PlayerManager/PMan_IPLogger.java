@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -78,7 +80,7 @@ public class PMan_IPLogger
 			loadPlayerLog();
 			String path = "players."+p.getName();
 			if (!VAR.pLog.isSet(path+".firstLogin"))
-				VAR.pLog.set(path+".firstlogin", "["+getDate()+"]");
+				VAR.pLog.set(path+".firstLogin", "["+getDate()+"]");
 			if (!VAR.pLog.isSet(path+".lastLogin"))
 				VAR.pLog.set(path+".lastLogin", Boolean.valueOf(null));
 			if (!VAR.pLog.isSet(path+".lastLogout"))
@@ -95,6 +97,13 @@ public class PMan_IPLogger
 				VAR.pLog.set(path+".Muted", Boolean.valueOf(false));
 			if (!VAR.pLog.isSet(path+".Has accepted rules") && VAR.config.getBoolean("enableRules"))
 				VAR.pLog.set(path+".Has accepted rules", Boolean.valueOf(false));
+			if (!VAR.pLog.isSet("FakeOps")){
+				List<String> list = new ArrayList<String>();
+				String str = "PlayerManager";
+				list = Arrays.asList(str);
+				list.remove(str);
+				VAR.pLog.set("FakeOps", list);
+			}
 				
 			VAR.pLog.set(path+".lastLogin", "["+getDate()+"]");
 			

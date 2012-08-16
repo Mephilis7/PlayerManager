@@ -38,8 +38,6 @@ public class PMan_ReportHandler implements CommandExecutor{
 	//This class is responsible for the commands concerning the report stuff.
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-		if (sender.getName().equalsIgnoreCase("console"))
-			VAR.console = true;
 		// Defining the command /report
 		if (cmd.getName().equalsIgnoreCase("report")){
 			if (sender.hasPermission("pman.report") || sender.isOp()){
@@ -145,6 +143,7 @@ public class PMan_ReportHandler implements CommandExecutor{
 					} catch (Exception ex){
 						ex.printStackTrace();
 					}
+					sender.sendMessage(VAR.Header+ChatColor.GRAY+"Successfully reported "+ChatColor.RED+p.getName()+ChatColor.GRAY+" for \""+reason+"\"");
 					VAR.log.warning(VAR.logHeader + sender.getName()+" has reported "+p.getName()+" because \""+ reason+"\"");
 					//Notify all players with pman.check permission that someone has been reported.
 					for (Player p2: Bukkit.getServer().getOnlinePlayers()){
@@ -381,7 +380,7 @@ public class PMan_ReportHandler implements CommandExecutor{
 								VAR.log.info(VAR.logHeader+sender.getName()+" has forgiven "+p.getName()+" his "+i+getEnding(i)+" report.");
 					} else { sender.sendMessage(VAR.Header+ChatColor.RED+"A report with the number "+arg1+" does not exist for "+p.getName()+".");}
 				} else {
-					Bukkit.getServer().dispatchCommand(sender,"/apologise <player> <ReportNumber|all>");
+					Bukkit.getServer().dispatchCommand(sender,"/apologise ?");
 				}
 			} else { this.plugin.denied(sender);}
 		}

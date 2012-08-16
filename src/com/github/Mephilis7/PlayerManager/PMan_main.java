@@ -42,7 +42,7 @@ public class PMan_main extends JavaPlugin {
 	ChatColor aqua = ChatColor.AQUA;
 	ChatColor white = ChatColor.WHITE;
 	
-	int configVersion = 6;
+	int configVersion = 7;
 	 
 	/* Copyright 2012 Mephilis7
 	 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1296,7 +1296,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# &5 - Dark Purple    &b - Aqua          &italic - Italic\n");
 			out.write("# &strike - Striked   &under - Underline &magic - Magic       &reset - Reset\n");
 			out.write("# %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS\n");
-			out.write("# %ONLINELIST  - %SERVERNAME\n\n");
+			out.write("# %ONLINELIST  - %SERVERNAME   (OnlinePlayers gives a number, OnlineList all the names.)\n\n");
 			
 			out.write("########## Important Rule for the config.yml! ##########\n");
 			out.write("# Whenever there is a configurable message sent to someone, surround that part with these! ' '\n");
@@ -1370,8 +1370,8 @@ public class PMan_main extends JavaPlugin {
 			out.write("# DontKnow: No matter what command he types, he will always receive \"Unknown command. Type \"help\" for help.\"\n");
 			out.write("# GoHelp[]: If he tries to break a block, he will be sent the message between the square brackets and the block will reappear.\n");
 			out.write("# Mute: The fakeop will be muted, but he won't know... He's going to think that everyone's ignoring him! PlayerManager needs the Chat-Prefix in curly brackets.\n");
-			out.write("# Example: Broadcast[Whitelist];GoHelp['&cYou are op! Now go help someone!'];Mute{'<&2[Member]&f %NAME> '}\n");
-			out.write("fakeOpAnnoy: "+fakeOPA+"\n");
+			out.write("# Example: 'Broadcast[Whitelist];GoHelp[&cYou are op! Now go help someone!];Mute{<&2[Member]&f %NAME> }'\n");
+			out.write("fakeOpAnnoy: '"+fakeOPA+"'\n");
 			out.write("# This is the Broadcast white/blacklist. All commands listed here WILL NOT be sent (whitelist) or WILL be sent (blacklist) to the chat instead of being executed.\n");
 			out.write("fakeList:\n");
 			i = 0;
@@ -1392,6 +1392,7 @@ public class PMan_main extends JavaPlugin {
 			out.write("# Write your rules here. It does not matter how long they are, just make sure to\n");
 			out.write("# always increase the Rules[number] by one. You can have Rules1 - Rules5832, but not Rules2 - Rules4!\n");
 			out.write("# Each of those Rules[number] will be written on a new line.\n");
+			out.write("# %VARIABLE will give server information. Don't use %NAME, %WORLD and %GAMEMODE.\n");
 			i = 0;
 			while (i < outRules.length){
 				out.write("Rules"+(i+1)+": '" + outRules[i].trim() +"'\n");
@@ -1571,7 +1572,7 @@ public class PMan_main extends JavaPlugin {
 				VAR.log.info(VAR.logHeader+"Error while looking for updates.");
 			}
 			}
-		}, 15L);
+		}, 60L);
 	}
 	private boolean setupPermissions()
     {

@@ -37,7 +37,6 @@ public class VAR
 	public static boolean doubleIP;
 	public static String msg = "";
 	public static boolean logit = false;
-	public static boolean console = false;
 	//config file:
 	public static String directory = "plugins" + File.separator + "PlayerManager";
 	static File f_config = new File(directory + File.separator + "config.yml");

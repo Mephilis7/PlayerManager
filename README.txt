@@ -1,4 +1,4 @@
-PlayerManager v1.8 by Mephilis7
+PlayerManager v1.8.1 by Mephilis7
 =====================================
 
 PlayerManager is a nice plugin i wrote for the Minecraft Bukkit server v1.3.1-R1.0
@@ -167,6 +167,15 @@ Planned Features:
 
 Changelog:
 ----------
+v1.8.1
+ [!] Config.yml update to version 7
+ [FIX] Fixed a bug breaking almost each and every command, if the FakeOps list was missing.
+ [FIX] Fixed the /acceptrules commands specified in the config.yml not being executed properly.
+ [FIX] Fixed the /acceptrules command sometimes denying and telling you that you were the console
+ [FIX] The /report command now tells you that you've reported someone.
+ [FIX] Fixed the /apologise command not displaying the command help if the arguments were wrong
+ [FIX] Fixed the first login (in the PlayerLog.yml) always being updated
+
 v1.8
  [+] Added /pman censor commands
  [+] Added /fakeop commands

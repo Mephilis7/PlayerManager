@@ -7,7 +7,7 @@
 # &5 - Dark Purple    &b - Aqua          &italic - Italic
 # &strike - Striked   &under - Underline &magic - Magic       &reset - Reset
 # %NAME  - %IP  - %WORLD  - %GAMEMODE  - %ONLINEPLAYERS  - %MAXPLAYERS
-# %ONLINELIST  - %SERVERNAME
+# %ONLINELIST  - %SERVERNAME   (OnlinePlayers gives a number, OnlineList all the names.)
 
 ########## Important Rule for the config.yml! ##########
 # Whenever there is a configurable message sent to someone, surround that part with these! ' '
@@ -101,6 +101,7 @@ RulesExCmd: 'give %NAME stone_sword 1|say WELCOME %NAME TO THE SERVER!'
 # Write your rules here. It does not matter how long they are, just make sure to
 # always increase the Rules[number] by one. You can have Rules1 - Rules5832, but not Rules2 - Rules4!
 # Each of those Rules[number] will be written on a new line.
+# %VARIABLE will give server information. Don't use %NAME, %WORLD and %GAMEMODE.
 Rules1: '&3---- &bold%SERVERNAME Rules&reset ----'
 Rules2: '&1[1] &cDo not grief.'
 Rules3: '&1[2] &cBe polite.'
@@ -205,4 +206,4 @@ supportReiMinimap: false
 
 
 # DO NOT CHANGE THIS!
-version: 6
+version: 7

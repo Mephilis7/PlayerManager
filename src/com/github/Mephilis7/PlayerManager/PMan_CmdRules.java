@@ -30,11 +30,14 @@ public class PMan_CmdRules implements CommandExecutor{
 	public PMan_CmdRules(PMan_main plugin){
 		this.plugin = plugin;
 	}
+	boolean console = false;
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-		if (sender.getName().equalsIgnoreCase("console"))
-			VAR.console = true;
+		console = false;
+		if (sender.getName().equalsIgnoreCase("console")){
+			console = true;
+		}
 		//Shows the rules
 		if (cmd.getName().equalsIgnoreCase("rules")){
 			if (sender.hasPermission("pman.rules")){
@@ -51,12 +54,12 @@ public class PMan_CmdRules implements CommandExecutor{
 				//While there's another rules message set in the config.yml, replace the color codes and send the result to sender.
 				while (VAR.config.isSet("Rules"+i)){
 					msg = VAR.config.getString("Rules"+i);
-					msg = replace(msg, sender);
+					msg = replaceRules(msg);
 					sender.sendMessage(msg);
 					i++;
 				}
 				//Set the player's rules state from "has not read" to "has read, may accept the rules"
-				if (!VAR.console){
+				if (!console){
 					if (VAR.pLog.getString("players."+sender.getName()+".Has accepted rules").equalsIgnoreCase("false")){
 						try{
 							VAR.pLog.set("players."+sender.getName()+".Has accepted rules", "hasTyped");
@@ -80,10 +83,10 @@ public class PMan_CmdRules implements CommandExecutor{
 					sender.sendMessage(ChatColor.AQUA +"Confirm that you've read the server rules and agree with them.");
 					return true;
 				}
-				if (!VAR.console){
+				if (!console){
 					//If the player has not read the rules yet.
 					if (VAR.pLog.getString("players."+sender.getName()+".Has accepted rules").equalsIgnoreCase("false")){
-						sender.sendMessage(ChatColor.RED + "You have to read the rules first!! Please type /rules.");
+						sender.sendMessage(ChatColor.RED + "You have to read the rules first!! Please type "+ChatColor.DARK_GREEN+"/rules.");
 						return true;
 					}
 					if (VAR.pLog.getString("players."+sender.getName()+".Has accepted rules").equalsIgnoreCase("hasTyped")){
@@ -109,33 +112,35 @@ public class PMan_CmdRules implements CommandExecutor{
 							p.teleport(loc);
 						}
 						//Execute the commands specified in the config.yml
-						String AcceptCmd = VAR.config.getString("RulesExCmd").trim();
-						AcceptCmd = replace(AcceptCmd, sender);
-						String[] ExCmd = AcceptCmd.split("|");
+						String AcceptCmd = VAR.config.getString("RulesExCmd");
+						AcceptCmd = replaceAccept(AcceptCmd, Bukkit.getServer().getPlayer(sender.getName()));
+						String[] ExCmd = AcceptCmd.split("\\|");
 						int i = 0;
 						while (i < ExCmd.length){
 							Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), ExCmd[i]);
 							i++;
 						}
-						
+						sender.sendMessage(ChatColor.GREEN+"Thank you for accepting the server rules.");
 					} else sender.sendMessage(VAR.Header + ChatColor.BLUE + "You've already accepted the rules. Thanks anyway.");
 				} else sender.sendMessage(VAR.Header+ChatColor.YELLOW + "Sorry, you have to be a player to execute this command.");
 			} else this.plugin.denied(sender);
 		}
 		return true;
 	}
-	
-	public String replace(String str, CommandSender sender){			
-		str = str.replace("%NAME", sender.getName());
-		if (!VAR.console){
-			str = str.replace("%IP", Bukkit.getServer().getPlayer(sender.getName()).getAddress().toString());
-			str = str.replace("%WORLD", Bukkit.getServer().getPlayer(sender.getName()).getWorld().getName());
-			str = str.replace("%GAMEMODE", Bukkit.getServer().getPlayer(sender.getName()).getGameMode().toString());
-		} else {
-			str = str.replace("%IP", Bukkit.getServer().getIp());
-			str = str.replace("%WORLD", "RealLife");
-			str = str.replace("%GAMEMODE", "GODMODE");
-		}
+	public String replaceAccept(String str, Player p){
+		str = str.replace("%NAME", p.getName());
+		str = str.replace("%IP", p.getAddress().toString());
+		str = str.replace("%WORLD", p.getWorld().getName());
+		str = str.replace("%GAMEMODE", p.getGameMode().name());
+		str = replaceCcode(str);
+		return str;
+	}
+	public String replaceRules(String str){			
+		str = str.replace("%IP", Bukkit.getServer().getIp());
+		str = replaceCcode(str);
+		return str;
+	}
+	public String replaceCcode(String str){
 		str = str.replace("%ONLINEPLAYERS", Integer.toString(Bukkit.getServer().getOnlinePlayers().length));
 		str = str.replace("%MAXPLAYERS", Integer.toString(Bukkit.getServer().getMaxPlayers()));
 		String s = "";
